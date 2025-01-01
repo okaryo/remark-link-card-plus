@@ -2,16 +2,16 @@
   "name": "remark-link-card-plus",
   "version": "0.0.1",
   "description": "Remark plugin to convert text links to link cards inspired by gatsby-remark-link-card-plus",
-  "main": "index.js",
+  "main": "./build/index.js",
   "scripts": {
-    "test": "jest --verbose ./tests"
+    "dev": "tsc -w",
+    "build": "tsc -p tsconfig.build.json",
+    "test": "jest --verbose ./tests",
+    "typecheck": "tsc --noEmit"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/okaryo/remark-link-card-plus.git"
-  },
-  "engines": {
-    "node": ">=12"
   },
   "keywords": [
     "unified",
@@ -29,16 +29,19 @@
   "homepage": "https://github.com/okaryo/remark-link-card-plus#readme",
   "devDependencies": {
     "@remark-embedder/core": "^3.0.3",
+    "@types/he": "^1.2.3",
     "jest": "^29.7.0",
     "next-mdx-remote": "^5.0.0",
     "node-html-parser": "^7.0.1",
     "remark": "^15.0.1",
-    "remark-html": "^16.0.1"
+    "remark-html": "^16.0.1",
+    "typescript": "^5.7.2"
   },
   "dependencies": {
     "he": "^1.2.0",
     "node-fetch": "^3.3.2",
     "open-graph-scraper": "^6.8.3",
+    "unified": "^11.0.5",
     "unist-util-visit": "^5.0.0"
   }
 }

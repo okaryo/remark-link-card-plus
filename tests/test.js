@@ -4,7 +4,7 @@ const remark = require('remark');
 const remarkHtmll = require('remark-html');
 const { default: remarkEmbdder } = require('@remark-embedder/core');
 const renderToString = require('next-mdx-remote/render-to-string');
-const rlc = require('../index.js');
+const rlc = require('../src/index.js');
 
 const doc = fs.readFileSync('./tests/fixture.md', 'utf8');
 

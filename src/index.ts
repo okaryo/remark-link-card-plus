@@ -1,15 +1,20 @@
-const visit = require('unist-util-visit');
-const ogs = require('open-graph-scraper');
-const path = require('path');
-const { writeFile, access, mkdir } = require('fs').promises;
-const fetch = require('node-fetch');
-const he = require('he');
-const { createHash } = require('crypto');
+import { visit } from "unist-util-visit";
+import client from "open-graph-scraper";
+import path from "path";
+import { writeFile, access, mkdir } from "fs/promises";
+import he from "he";
+import { createHash } from "crypto";
+import type { Plugin } from "unified";
 
 const defaultSaveDirectory = 'public';
 const defaultOutputDirectory = '/remark-link-card-plus/';
 
-const rlc = (options) => {
+type Options = {
+  cache?: boolean;
+  shortenUrl?: boolean;
+}
+
+const remarkLinkCard = (options: Options) => {
   return async (tree) => {
     transformers = [];
     visit(tree, 'paragraph', (paragraphNode, index) => {
@@ -57,7 +62,7 @@ const rlc = (options) => {
 
 const getOpenGraph = async (targetUrl) => {
   try {
-    const { result } = await ogs({ url: targetUrl, timeout: 10000 });
+    const { result } = await client({ url: targetUrl, timeout: 10000 });
     return result;
   } catch (error) {
     console.error(
@@ -67,7 +72,7 @@ const getOpenGraph = async (targetUrl) => {
   }
 };
 
-const fetchData = async (targetUrl, options) => {
+const fetchData = async (targetUrl, options: Options) => {
   // get open graph
   const ogResult = await getOpenGraph(targetUrl);
   // set title
@@ -220,4 +225,4 @@ const downloadImage = async (url, saveDirectory) => {
   return filename;
 };
 
-module.exports = rlc;
+export default remarkLinkCard;
