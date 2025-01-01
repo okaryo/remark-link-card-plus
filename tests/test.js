@@ -11,7 +11,7 @@ const doc = fs.readFileSync('./tests/fixture.md', 'utf8');
 const inlineLinksSample = `
 [example](http://example.com/) is inline link
 
-[remark-link-card](https://www.npmjs.com/package/remark-link-card) is inline link
+[remark-link-card-plus](https://www.npmjs.com/package/remark-link-card-plus) is inline link
 `.trim();
 
 const multipleLinksSample = `
@@ -70,12 +70,12 @@ const decodedUrl = 'https://example.com/テスト/fooバー/#はじめに';
 // test('Use cache ogImage', async () => {
 //   const result = await remark()
 //     .use(rlc, { cache: true })
-//     .process('https://www.npmjs.com/package/remark-link-card');
+//     .process('https://www.npmjs.com/package/remark-link-card-plus');
 
 //   const parsedOutput = HTMLParser.parse(result.contents);
 //   const imageElements = parsedOutput.querySelectorAll('img');
 //   imageElements.map((element) => {
-//     expect(element.getAttribute('src').startsWith('/remark-link-card/')).toBe(
+//     expect(element.getAttribute('src').startsWith('/remark-link-card-plus/')).toBe(
 //       true
 //     );
 //   });
@@ -100,7 +100,7 @@ test('Shorten URL', async () => {
   console.log("-------------")
 
   expect(result.contents.trim()).toContain(
-    '<a class="rlc-container" href="https://www.npmjs.com/package/remark-link-card">'
+    '<a class="rlc-container" href="https://www.npmjs.com/package/remark-link-card-plus">'
   );
   expect(result.contents.trim()).toContain(
     '<span class="rlc-url">www.npmjs.com</span>'
@@ -109,7 +109,7 @@ test('Shorten URL', async () => {
 });
 
 // With remark-embedder
-// If remark-embedder conversion data exists, remark-link-card does nothing.
+// If remark-embedder conversion data exists, remark-link-card-plus does nothing.
 const CodeSandboxTransformer = {
   name: 'CodeSandbox',
   // shouldTransform can also be async
@@ -139,7 +139,7 @@ const expectedResult = `
 <iframe src="https://codesandbox.io/embed/css-variables-vs-themeprovider-df90h" style="width:100%; height:500px; border:0; border-radius: 4px; overflow:hidden;" allow="accelerometer; ambient-light-sensor; camera; encrypted-media; geolocation; gyroscope; hid; microphone; midi; payment; usb; vr; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts"></iframe>
 `.trim();
 
-// test('Use remark-link-card with remark-embedder', async () => {
+// test('Use remark-link-card-plus with remark-embedder', async () => {
 //   const result = await remark()
 //     .use(remarkEmbdder, {
 //       transformers: [CodeSandboxTransformer],

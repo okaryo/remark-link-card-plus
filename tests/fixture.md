@@ -1,4 +1,4 @@
-# remark-link-card
+# remark-link-card-plus
 
 ## Bare links
 
@@ -6,11 +6,11 @@ Bare links are converted to link cards.
 
 http://example.com/
 
-https://www.npmjs.com/package/remark-link-card
+https://www.npmjs.com/package/remark-link-card-plus
 
 <http://example.com/>
 
-<https://www.npmjs.com/package/remark-link-card>
+<https://www.npmjs.com/package/remark-link-card-plus>
 
 ## Inline links
 
@@ -18,7 +18,7 @@ Inline links are **not** converted to link cards.
 
 [example](http://example.com/) is inline link
 
-[remark-link-card](https://www.npmjs.com/package/remark-link-card) is inline link
+[remark-link-card-plus](https://www.npmjs.com/package/remark-link-card-plus) is inline link
 
 ## Multiple links in one line
 

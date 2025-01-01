@@ -7,7 +7,7 @@ const he = require('he');
 const { createHash } = require('crypto');
 
 const defaultSaveDirectory = 'public';
-const defaultOutputDirectory = '/remark-link-card/';
+const defaultOutputDirectory = '/remark-link-card-plus/';
 
 const rlc = (options) => {
   return async (tree) => {
@@ -48,7 +48,7 @@ const rlc = (options) => {
     try {
       await Promise.all(transformers.map((t) => t()));
     } catch (error) {
-      console.error(`[remark-link-card] Error: ${error}`);
+      console.error(`[remark-link-card-plus] Error: ${error}`);
     }
 
     return tree;
@@ -61,7 +61,7 @@ const getOpenGraph = async (targetUrl) => {
     return result;
   } catch (error) {
     console.error(
-      `[remark-link-card] Error: Failed to get the Open Graph data of ${error.result.requestUrl} due to ${error.result.error}.`
+      `[remark-link-card-plus] Error: Failed to get the Open Graph data of ${error.result.requestUrl} due to ${error.result.error}.`
     );
     return undefined;
   }
@@ -123,7 +123,7 @@ const fetchData = async (targetUrl, options) => {
     displayUrl = decodeURI(displayUrl);
   } catch (error) {
     console.error(
-      `[remark-link-card] Error: Cannot decode url: "${url}"\n ${error}`
+      `[remark-link-card-plus] Error: Cannot decode url: "${url}"\n ${error}`
     );
   }
 
@@ -180,7 +180,7 @@ const downloadImage = async (url, saveDirectory) => {
     targetUrl = new URL(url);
   } catch (error) {
     console.error(
-      `[remark-link-card] Error: Failed to parse url "${url}"\n ${error}`
+      `[remark-link-card-plus] Error: Failed to parse url "${url}"\n ${error}`
     );
   }
   const hash = createHash("sha256").update(decodeURI(targetUrl.href)).digest("hex");
@@ -212,7 +212,7 @@ const downloadImage = async (url, saveDirectory) => {
     writeFile(saveFilePath, buffer);
   } catch (error) {
     console.error(
-      `[remark-link-card] Error: Failed to download image from ${targetUrl.href}\n ${error}`
+      `[remark-link-card-plus] Error: Failed to download image from ${targetUrl.href}\n ${error}`
     );
     return undefined;
   }
