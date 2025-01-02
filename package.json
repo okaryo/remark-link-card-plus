@@ -30,17 +30,17 @@
   "devDependencies": {
     "@remark-embedder/core": "^3.0.3",
     "@types/he": "^1.2.3",
+    "@types/sanitize-html": "^2.13.0",
     "jest": "^29.7.0",
-    "next-mdx-remote": "^5.0.0",
     "node-html-parser": "^7.0.1",
     "remark": "^15.0.1",
     "remark-html": "^16.0.1",
     "typescript": "^5.7.2"
   },
   "dependencies": {
-    "he": "^1.2.0",
     "node-fetch": "^3.3.2",
     "open-graph-scraper": "^6.8.3",
+    "sanitize-html": "^2.14.0",
     "unified": "^11.0.5",
     "unist-util-visit": "^5.0.0"
   }

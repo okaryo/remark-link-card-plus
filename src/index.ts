@@ -2,9 +2,10 @@ import { visit } from "unist-util-visit";
 import client from "open-graph-scraper";
 import path from "path";
 import { writeFile, access, mkdir } from "fs/promises";
-import he from "he";
 import { createHash } from "crypto";
 import type { Plugin } from "unified";
+import sanitizeHtml from "sanitize-html";
+import { ErrorResult } from "open-graph-scraper/types/lib/types";
 
 const defaultSaveDirectory = 'public';
 const defaultOutputDirectory = '/remark-link-card-plus/';
@@ -14,215 +15,221 @@ type Options = {
   shortenUrl?: boolean;
 }
 
-const remarkLinkCard = (options: Options) => {
-  return async (tree) => {
-    transformers = [];
-    visit(tree, 'paragraph', (paragraphNode, index) => {
-      if (paragraphNode.children.length !== 1) {
-        return tree;
-      }
-
-      // If data exists, do nothing.
-      if (paragraphNode && paragraphNode.data !== undefined) {
-        return tree;
-      }
-
-      visit(paragraphNode, 'text', (textNode) => {
-        const urls = textNode.value.match(
-          /(https?:\/\/|www(?=\.))([-.\w]+)([^ \t\r\n]*)/g
-        );
-        if (urls && urls.length === 1) {
-          transformers.push(async () => {
-            // fetch data
-            const data = await fetchData(urls[0], options);
-
-            // create linkCardNode
-            const linkCardHtml = createLinkCard(data);
-            const linkCardNode = {
-              type: 'html',
-              value: linkCardHtml,
-            };
-
-            // Replace paragraph node with linkCardNode
-            tree.children.splice(index, 1, linkCardNode);
-          });
-        }
-      });
-    });
-
-    try {
-      await Promise.all(transformers.map((t) => t()));
-    } catch (error) {
-      console.error(`[remark-link-card-plus] Error: ${error}`);
-    }
-
-    return tree;
-  };
+type OpenGraphResult = {
+  ogTitle?: string;
+  ogDescription?: string;
+  ogImage?: { url: string; alt?: string };
 };
 
-const getOpenGraph = async (targetUrl) => {
+type LinkCardData = {
+  title: string;
+  description: string;
+  faviconUrl: string;
+  ogImageUrl: string;
+  ogImageAlt: string;
+  url: URL;
+};
+
+const remarkLinkCard: Plugin<[Options]> = (options: Options) => async (tree: any) => {
+  const transformers: (() => Promise<void>)[] = [];
+  visit(tree, 'paragraph', (paragraphNode: any, index) => {
+    if (paragraphNode.children.length !== 1) {
+      return tree;
+    }
+
+    if (paragraphNode && paragraphNode.data !== undefined) {
+      return tree;
+    }
+
+    visit(paragraphNode, 'text', (textNode: any) => {
+      const urls = textNode.value.match(
+        /(https?:\/\/|www(?=\.))([-.\w]+)([^ \t\r\n]*)/g
+      );
+      if (urls && urls.length === 1) {
+        transformers.push(async () => {
+          const data = await getLinkCardData(new URL(urls[0]), options);
+          const linkCardNode = createLinkCardNode(data);
+
+          paragraphNode.children = [linkCardNode];
+        });
+      }
+    });
+  });
+
   try {
-    const { result } = await client({ url: targetUrl, timeout: 10000 });
-    return result;
+    await Promise.all(transformers.map((t) => t()));
   } catch (error) {
+    console.error(`[remark-link-card-plus] Error: ${error}`);
+  }
+
+  return tree;
+};
+
+const getOpenGraph = async (targetUrl: URL): Promise<OpenGraphResult | undefined> => {
+  try {
+    const { result } = await client({ url: targetUrl.toString(), timeout: 10000 });
+    return result as OpenGraphResult;
+  } catch (error) {
+    const ogError = error as ErrorResult;
     console.error(
-      `[remark-link-card-plus] Error: Failed to get the Open Graph data of ${error.result.requestUrl} due to ${error.result.error}.`
+      `[remark-link-card-plus] Error: Failed to get the Open Graph data of ${ogError.result.requestUrl} due to ${ogError.result.error}.`
     );
     return undefined;
   }
 };
 
-const fetchData = async (targetUrl, options: Options) => {
-  // get open graph
-  const ogResult = await getOpenGraph(targetUrl);
-  // set title
-  const parsedUrl = new URL(targetUrl);
-  const title =
-    (ogResult && ogResult.ogTitle && he.encode(ogResult.ogTitle)) ||
-    parsedUrl.hostname;
-  // set description
-  const description =
-    (ogResult && ogResult.ogDescription && he.encode(ogResult.ogDescription)) ||
-    '';
-  // set favicon src
-  const faviconUrl = `https://www.google.com/s2/favicons?domain=${parsedUrl.hostname}`;
-  let faviconSrc = '';
+const getFaviconImageSrc = async (url: URL) => {
+  const faviconUrl = `https://www.google.com/s2/favicons?domain=${url.hostname}`;
+
+  const res = await fetch(faviconUrl, { method: "HEAD", signal: AbortSignal.timeout(10000) });
+  if (!res.ok) return "";
+
+  return faviconUrl;
+};
+
+const getLinkCardData = async (url: URL, options: Options) => {
+  const ogResult = await getOpenGraph(url);
+  const title = (ogResult && ogResult.ogTitle) || url.hostname;
+  const description = (ogResult && ogResult.ogDescription) || '';
+
+  let faviconUrl = await getFaviconImageSrc(url)
   if (options && options.cache) {
-    faviconFilename = await downloadImage(
-      faviconUrl,
+    const faviconFilename = await downloadImage(
+      new URL(faviconUrl),
       path.join(process.cwd(), defaultSaveDirectory, defaultOutputDirectory)
     );
-    faviconSrc =
-      faviconFilename && path.join(defaultOutputDirectory, faviconFilename);
-  } else {
-    faviconSrc = faviconUrl;
+    faviconUrl = faviconFilename
+      ? path.join(defaultOutputDirectory, faviconFilename)
+      : faviconUrl;
   }
-  // set open graph image src
-  let ogImageSrc = '';
+
+  let ogImageUrl = "";
   if (ogResult && ogResult.ogImage && ogResult.ogImage.url) {
     if (options && options.cache) {
       const imageFilename = await downloadImage(
-        ogResult.ogImage.url,
+        new URL(ogResult.ogImage.url),
         path.join(process.cwd(), defaultSaveDirectory, defaultOutputDirectory)
       );
-      ogImageSrc =
-        imageFilename && path.join(defaultOutputDirectory, imageFilename);
+      ogImageUrl = imageFilename
+        ? path.join(defaultOutputDirectory, imageFilename)
+        : ogResult.ogImage.url;
     } else {
-      ogImageSrc = ogResult.ogImage.url;
+      ogImageUrl = ogResult.ogImage.url;
     }
   }
-  // set open graph image alt
-  const ogImageAlt =
-    // (ogResult && ogResult.ogImage && ogResult.ogImage.alt) || title;
-    (ogResult &&
-      ogResult.ogImage &&
-      ogResult.ogImage.alt &&
-      he.encode(ogResult.ogImage.alt)) ||
-    title;
-
-  // set display url
-  let displayUrl =
-    options && options.shortenUrl ? parsedUrl.hostname : targetUrl;
-
-  try {
-    displayUrl = decodeURI(displayUrl);
-  } catch (error) {
-    console.error(
-      `[remark-link-card-plus] Error: Cannot decode url: "${url}"\n ${error}`
-    );
-  }
+  const ogImageAlt = ogResult?.ogImage?.alt || title;
 
   return {
     title,
     description,
-    faviconSrc,
-    ogImageSrc,
+    faviconUrl,
+    ogImageUrl,
     ogImageAlt,
-    displayUrl,
-    url: targetUrl,
+    url,
   };
 };
 
-const createLinkCard = (data) => {
-  // create favicon element
-  const faviconElement = data.faviconSrc
-    ? `<img class="rlc-favicon" src="${data.faviconSrc}" alt="${data.title} favicon" width="16" height="16">`.trim()
-    : '';
-
-  // create description element
-  const descriptionElement = data.description
-    ? `<div class="rlc-description">${data.description}</div>`
-    : '';
-
-  // create image element
-  const imageElement = data.ogImageSrc
-    ? `<div class="rlc-image-container">
-      <img class="rlc-image" src="${data.ogImageSrc}" alt="${data.ogImageAlt}" />
-    </div>`.trim()
-    : '';
-
-  // create output HTML
-  const outputHTML = `
-<a class="rlc-container" href="${data.url}">
-  <div class="rlc-info">
-    <div class="rlc-title">${data.title}</div>
-    ${descriptionElement}
-    <div class="rlc-url-container">
-      ${faviconElement}
-      <span class="rlc-url">${data.displayUrl}</span>
-    </div>
-  </div>
-  ${imageElement}
-</a>
-`.trim();
-
-  return outputHTML;
-};
-
-const downloadImage = async (url, saveDirectory) => {
-  let targetUrl;
-  try {
-    targetUrl = new URL(url);
-  } catch (error) {
-    console.error(
-      `[remark-link-card-plus] Error: Failed to parse url "${url}"\n ${error}`
-    );
-  }
-  const hash = createHash("sha256").update(decodeURI(targetUrl.href)).digest("hex");
-  const filename = hash + path.extname(targetUrl.pathname);
+const downloadImage = async (url: URL, saveDirectory: string) => {
+  const hash = createHash("sha256").update(decodeURI(url.href)).digest("hex");
+  const filename = hash + path.extname(url.pathname);
   const saveFilePath = path.join(saveDirectory, filename);
-  // check file existence(if it is existed, return filename)
+
   try {
     await access(saveFilePath);
     return filename;
   } catch (error) {}
-  // check directory existence
+
   try {
     await access(saveDirectory);
   } catch (error) {
-    // create directory if it is not existed
     await mkdir(saveDirectory, { recursive: true });
   }
 
-  // fetch data
   try {
-    const response = await fetch(targetUrl.href, {
-      header: {
-        'User-Agent':
-          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36',
-      },
-      timeout: 10000,
-    });
-    const buffer = await response.buffer();
+    const response = await fetch(url.href, { signal: AbortSignal.timeout(10000) });
+    const arrayBuffer = await response.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
     writeFile(saveFilePath, buffer);
   } catch (error) {
     console.error(
-      `[remark-link-card-plus] Error: Failed to download image from ${targetUrl.href}\n ${error}`
+      `[remark-link-card-plus] Error: Failed to download image from ${url.href}\n ${error}`
     );
     return undefined;
   }
 
   return filename;
 };
+
+const h = (type: string, attrs = {}, children: any[] = []) => {
+	return {
+		type: "element",
+		tagName: type,
+		data: {
+			hName: type,
+			hProperties: attrs,
+			hChildren: children,
+		},
+		properties: attrs,
+		children,
+	};
+};
+
+const text = (value = "") => {
+	const sanitized = sanitizeHtml(value);
+
+	return {
+		type: "text",
+		value: sanitized,
+	};
+};
+
+const className = (value: string) => {
+	const prefix = "remark-link-card-plus";
+	return `${prefix}__${value}`;
+};
+
+const createLinkCardNode = (data: LinkCardData) => {
+  const { title, description, faviconUrl, ogImageUrl, ogImageAlt, url } = data;
+  return h(
+    "a",
+    {
+      className: className("link"),
+      href: url.toString(),
+      rel: "noreferrer noopener",
+      target: "_blank",
+    },
+    [
+      h("div", { className: className("main") }, [
+        h("div", { className: className("content") }, [
+          h("div", { className: className("title") }, [text(title)]),
+          h("div", { className: className("description") }, [
+            text(description),
+          ]),
+        ]),
+        h("div", { className: className("meta") }, [
+          faviconUrl
+            ? h("img", {
+                className: className("favicon"),
+                src: faviconUrl,
+                width: 14,
+                height: 14,
+                alt: "favicon",
+              })
+            : h("div"),
+          h("span", { className: className("url") }, [text(url.hostname)]),
+        ]),
+      ]),
+      ogImageUrl
+        ? h("div", { className: className("thumbnail") }, [
+            h("img", {
+              src: ogImageUrl,
+              className: className("image"),
+              alt: "ogImage",
+            }),
+          ])
+        : h("div"),
+    ],
+  );
+}
 
 export default remarkLinkCard;
