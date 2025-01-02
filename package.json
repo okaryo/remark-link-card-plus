@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "tsc -w",
     "build": "tsc -p tsconfig.build.json",
-    "test": "jest --verbose ./tests",
+    "test": "vitest run",
     "check": "biome check ./src",
     "check:fix": "biome check --write --unsafe ./src",
     "check:ci": "biome ci ./src",
@@ -34,12 +34,14 @@
     "@biomejs/biome": "1.9.4",
     "@remark-embedder/core": "^3.0.3",
     "@types/he": "^1.2.3",
+    "@types/node": "^22.10.3",
     "@types/sanitize-html": "^2.13.0",
-    "jest": "^29.7.0",
+    "msw": "^2.7.0",
     "node-html-parser": "^7.0.1",
     "remark": "^15.0.1",
     "remark-html": "^16.0.1",
-    "typescript": "^5.7.2"
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
   },
   "dependencies": {
     "node-fetch": "^3.3.2",
