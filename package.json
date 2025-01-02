@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "description": "Remark plugin to convert text links to link cards inspired by gatsby-remark-link-card-plus",
   "main": "./build/index.js",
+  "type": "module",
   "scripts": {
     "dev": "tsc -w",
     "build": "tsc -p tsconfig.build.json",
