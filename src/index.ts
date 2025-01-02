@@ -1,19 +1,19 @@
-import { visit } from "unist-util-visit";
+import { createHash } from "node:crypto";
+import { access, mkdir, writeFile } from "node:fs/promises";
+import path from "node:path";
 import client from "open-graph-scraper";
-import path from "path";
-import { writeFile, access, mkdir } from "fs/promises";
-import { createHash } from "crypto";
-import type { Plugin } from "unified";
+import type { ErrorResult } from "open-graph-scraper/types/lib/types";
 import sanitizeHtml from "sanitize-html";
-import { ErrorResult } from "open-graph-scraper/types/lib/types";
+import type { Plugin } from "unified";
+import { visit } from "unist-util-visit";
 
-const defaultSaveDirectory = 'public';
-const defaultOutputDirectory = '/remark-link-card-plus/';
+const defaultSaveDirectory = "public";
+const defaultOutputDirectory = "/remark-link-card-plus/";
 
 type Options = {
   cache?: boolean;
   shortenUrl?: boolean;
-}
+};
 
 type OpenGraphResult = {
   ogTitle?: string;
@@ -30,49 +30,58 @@ type LinkCardData = {
   url: URL;
 };
 
-const remarkLinkCard: Plugin<[Options]> = (options: Options) => async (tree: any) => {
-  const transformers: (() => Promise<void>)[] = [];
-  visit(tree, 'paragraph', (paragraphNode: any, index) => {
-    if (paragraphNode.children.length !== 1) {
-      return tree;
-    }
-
-    if (paragraphNode && paragraphNode.data !== undefined) {
-      return tree;
-    }
-
-    visit(paragraphNode, 'text', (textNode: any) => {
-      const urls = textNode.value.match(
-        /(https?:\/\/|www(?=\.))([-.\w]+)([^ \t\r\n]*)/g
-      );
-      if (urls && urls.length === 1) {
-        transformers.push(async () => {
-          const data = await getLinkCardData(new URL(urls[0]), options);
-          const linkCardNode = createLinkCardNode(data);
-
-          paragraphNode.children = [linkCardNode];
-        });
+const remarkLinkCard: Plugin<[Options]> =
+  // biome-ignore lint/suspicious/noExplicitAny: FIXME
+  (options: Options) => async (tree: any) => {
+    const transformers: (() => Promise<void>)[] = [];
+    // biome-ignore lint/suspicious/noExplicitAny: FIXME
+    visit(tree, "paragraph", (paragraphNode: any, index) => {
+      if (paragraphNode.children.length !== 1) {
+        return tree;
       }
+
+      if (paragraphNode && paragraphNode.data !== undefined) {
+        return tree;
+      }
+
+      // biome-ignore lint/suspicious/noExplicitAny: FIXME
+      visit(paragraphNode, "text", (textNode: any) => {
+        const urls = textNode.value.match(
+          /(https?:\/\/|www(?=\.))([-.\w]+)([^ \t\r\n]*)/g,
+        );
+        if (urls && urls.length === 1) {
+          transformers.push(async () => {
+            const data = await getLinkCardData(new URL(urls[0]), options);
+            const linkCardNode = createLinkCardNode(data);
+
+            paragraphNode.children = [linkCardNode];
+          });
+        }
+      });
     });
-  });
 
+    try {
+      await Promise.all(transformers.map((t) => t()));
+    } catch (error) {
+      console.error(`[remark-link-card-plus] Error: ${error}`);
+    }
+
+    return tree;
+  };
+
+const getOpenGraph = async (
+  targetUrl: URL,
+): Promise<OpenGraphResult | undefined> => {
   try {
-    await Promise.all(transformers.map((t) => t()));
-  } catch (error) {
-    console.error(`[remark-link-card-plus] Error: ${error}`);
-  }
-
-  return tree;
-};
-
-const getOpenGraph = async (targetUrl: URL): Promise<OpenGraphResult | undefined> => {
-  try {
-    const { result } = await client({ url: targetUrl.toString(), timeout: 10000 });
+    const { result } = await client({
+      url: targetUrl.toString(),
+      timeout: 10000,
+    });
     return result as OpenGraphResult;
   } catch (error) {
     const ogError = error as ErrorResult;
     console.error(
-      `[remark-link-card-plus] Error: Failed to get the Open Graph data of ${ogError.result.requestUrl} due to ${ogError.result.error}.`
+      `[remark-link-card-plus] Error: Failed to get the Open Graph data of ${ogError.result.requestUrl} due to ${ogError.result.error}.`,
     );
     return undefined;
   }
@@ -81,7 +90,10 @@ const getOpenGraph = async (targetUrl: URL): Promise<OpenGraphResult | undefined
 const getFaviconImageSrc = async (url: URL) => {
   const faviconUrl = `https://www.google.com/s2/favicons?domain=${url.hostname}`;
 
-  const res = await fetch(faviconUrl, { method: "HEAD", signal: AbortSignal.timeout(10000) });
+  const res = await fetch(faviconUrl, {
+    method: "HEAD",
+    signal: AbortSignal.timeout(10000),
+  });
   if (!res.ok) return "";
 
   return faviconUrl;
@@ -89,14 +101,14 @@ const getFaviconImageSrc = async (url: URL) => {
 
 const getLinkCardData = async (url: URL, options: Options) => {
   const ogResult = await getOpenGraph(url);
-  const title = (ogResult && ogResult.ogTitle) || url.hostname;
-  const description = (ogResult && ogResult.ogDescription) || '';
+  const title = ogResult?.ogTitle || url.hostname;
+  const description = ogResult?.ogDescription || "";
 
-  let faviconUrl = await getFaviconImageSrc(url)
-  if (options && options.cache) {
+  let faviconUrl = await getFaviconImageSrc(url);
+  if (options?.cache) {
     const faviconFilename = await downloadImage(
       new URL(faviconUrl),
-      path.join(process.cwd(), defaultSaveDirectory, defaultOutputDirectory)
+      path.join(process.cwd(), defaultSaveDirectory, defaultOutputDirectory),
     );
     faviconUrl = faviconFilename
       ? path.join(defaultOutputDirectory, faviconFilename)
@@ -104,11 +116,11 @@ const getLinkCardData = async (url: URL, options: Options) => {
   }
 
   let ogImageUrl = "";
-  if (ogResult && ogResult.ogImage && ogResult.ogImage.url) {
-    if (options && options.cache) {
+  if (ogResult?.ogImage?.url) {
+    if (options?.cache) {
       const imageFilename = await downloadImage(
         new URL(ogResult.ogImage.url),
-        path.join(process.cwd(), defaultSaveDirectory, defaultOutputDirectory)
+        path.join(process.cwd(), defaultSaveDirectory, defaultOutputDirectory),
       );
       ogImageUrl = imageFilename
         ? path.join(defaultOutputDirectory, imageFilename)
@@ -146,13 +158,15 @@ const downloadImage = async (url: URL, saveDirectory: string) => {
   }
 
   try {
-    const response = await fetch(url.href, { signal: AbortSignal.timeout(10000) });
+    const response = await fetch(url.href, {
+      signal: AbortSignal.timeout(10000),
+    });
     const arrayBuffer = await response.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
     writeFile(saveFilePath, buffer);
   } catch (error) {
     console.error(
-      `[remark-link-card-plus] Error: Failed to download image from ${url.href}\n ${error}`
+      `[remark-link-card-plus] Error: Failed to download image from ${url.href}\n ${error}`,
     );
     return undefined;
   }
@@ -160,32 +174,33 @@ const downloadImage = async (url: URL, saveDirectory: string) => {
   return filename;
 };
 
+// biome-ignore lint/suspicious/noExplicitAny: FIXME
 const h = (type: string, attrs = {}, children: any[] = []) => {
-	return {
-		type: "element",
-		tagName: type,
-		data: {
-			hName: type,
-			hProperties: attrs,
-			hChildren: children,
-		},
-		properties: attrs,
-		children,
-	};
+  return {
+    type: "element",
+    tagName: type,
+    data: {
+      hName: type,
+      hProperties: attrs,
+      hChildren: children,
+    },
+    properties: attrs,
+    children,
+  };
 };
 
 const text = (value = "") => {
-	const sanitized = sanitizeHtml(value);
+  const sanitized = sanitizeHtml(value);
 
-	return {
-		type: "text",
-		value: sanitized,
-	};
+  return {
+    type: "text",
+    value: sanitized,
+  };
 };
 
 const className = (value: string) => {
-	const prefix = "remark-link-card-plus";
-	return `${prefix}__${value}`;
+  const prefix = "remark-link-card-plus";
+  return `${prefix}__${value}`;
 };
 
 const createLinkCardNode = (data: LinkCardData) => {
@@ -230,6 +245,6 @@ const createLinkCardNode = (data: LinkCardData) => {
         : h("div"),
     ],
   );
-}
+};
 
 export default remarkLinkCard;

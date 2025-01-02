@@ -7,6 +7,9 @@
     "dev": "tsc -w",
     "build": "tsc -p tsconfig.build.json",
     "test": "jest --verbose ./tests",
+    "check": "biome check ./src",
+    "check:fix": "biome check --write --unsafe ./src",
+    "check:ci": "biome ci ./src",
     "typecheck": "tsc --noEmit"
   },
   "repository": {
@@ -28,6 +31,7 @@
   },
   "homepage": "https://github.com/okaryo/remark-link-card-plus#readme",
   "devDependencies": {
+    "@biomejs/biome": "1.9.4",
     "@remark-embedder/core": "^3.0.3",
     "@types/he": "^1.2.3",
     "@types/sanitize-html": "^2.13.0",
