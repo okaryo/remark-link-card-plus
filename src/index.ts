@@ -62,14 +62,13 @@ const remarkLinkCard: Plugin<[Options]> = // biome-ignore lint/suspicious/noExpl
     return tree;
   };
 
-
 const isSameUrlValue = (a: string, b: string) => {
   try {
     return new URL(a).toString() === new URL(b).toString();
   } catch (_) {
     return false;
   }
-}
+};
 
 const getOpenGraph = async (
   targetUrl: URL,
