@@ -41,108 +41,155 @@ afterAll(() => server.close());
 const processor = remark().use(markdown).use(remarkLinkCard, {}).use(html);
 
 describe("remark-link-card-plus", () => {
-  test("Convert a line with only a link into a card", async () => {
-    const input = `
+  describe("Basic usage", () => {
+    test("Convert a line with only a link into a card", async () => {
+      const input = `
 ## test
 
-[https://example.com](https://example.com)
+[https://example.com/path](https://example.com/path)
 
 `;
-    const { value } = await processor.process(input);
-    const expected = `<h2>test</h2>
-<div><a href="https://example.com/"><div><div><div>Test Site Title</div><div>Test Description</div></div><div><img src="https://www.google.com/s2/favicons?domain=example.com" width="14" height="14" alt="favicon"><span>example.com</span></div></div><div><img src="http://example.com" alt="ogImage"></div></a></div>
+      const { value } = await processor.process(input);
+      const expected = `<h2>test</h2>
+<div><a href="https://example.com/path"><div><div><div>Test Site Title</div><div>Test Description</div></div><div><img src="https://www.google.com/s2/favicons?domain=example.com" width="14" height="14" alt="favicon"><span>example.com</span></div></div><div><img src="http://example.com" alt="ogImage"></div></a></div>
 `;
-    expect(value.toString()).toBe(expected);
-  });
+      expect(value.toString()).toBe(expected);
+    });
 
-  test("Does not convert if a link and text exist on the same line", async () => {
-    const input = `
+    test("Does not convert if a link and text exist on the same line", async () => {
+      const input = `
 ## test
 
 [https://example.com](https://example.com) test
 `;
-    const { value } = await processor.process(input);
-    const expected = `<h2>test</h2>
+      const { value } = await processor.process(input);
+      const expected = `<h2>test</h2>
 <p><a href="https://example.com">https://example.com</a> test</p>
 `;
-    expect(value.toString()).toBe(expected);
-  });
+      expect(value.toString()).toBe(expected);
+    });
 
-  test("Does not convert if link text and URL are different", async () => {
-    const input = `
+    test("Does not convert if link text and URL are different", async () => {
+      const input = `
 ## test
 
 [example](https://example.com)
 `;
-    const { value } = await processor.process(input);
-    const expected = `<h2>test</h2>
+      const { value } = await processor.process(input);
+      const expected = `<h2>test</h2>
 <p><a href="https://example.com">example</a></p>
 `;
-    expect(value.toString()).toBe(expected);
-  });
+      expect(value.toString()).toBe(expected);
+    });
 
-  test("Does not show a favicon if the favicon request fails", async () => {
-    server.use(
-      http.head("https://www.google.com/s2/favicons", () => {
-        return new Response(null, { status: 404 });
-      }),
-    );
-    const input = `
+    test("Does not show a favicon if the favicon request fails", async () => {
+      server.use(
+        http.head("https://www.google.com/s2/favicons", () => {
+          return new Response(null, { status: 404 });
+        }),
+      );
+      const input = `
 ## test
 
 [https://example.com](https://example.com)
   `;
-    const { value } = await processor.process(input);
-    const expected = `<h2>test</h2>
+      const { value } = await processor.process(input);
+      const expected = `<h2>test</h2>
 <div><a href="https://example.com/"><div><div><div>Test Site Title</div><div>Test Description</div></div><div><div></div><span>example.com</span></div></div><div><img src="http://example.com" alt="ogImage"></div></a></div>
 `;
-    expect(value.toString()).toBe(expected);
-  });
-
-  test("Does not show an og image if the URL format is invalid", async () => {
-    // biome-ignore lint/suspicious/noExplicitAny: for open-graph-scraper mock
-    const mockedClient = vi.mocked(client as any);
-    mockedClient.mockResolvedValueOnce({
-      error: false,
-      result: {
-        ogTitle: "Test Site Title",
-        ogDescription: "Test Description",
-        ogImage: { url: "example.com" },
-      },
+      expect(value.toString()).toBe(expected);
     });
 
-    const input = `
+    test("Does not show an og image if the URL format is invalid", async () => {
+      // biome-ignore lint/suspicious/noExplicitAny: for open-graph-scraper mock
+      const mockedClient = vi.mocked(client as any);
+      mockedClient.mockResolvedValueOnce({
+        error: false,
+        result: {
+          ogTitle: "Test Site Title",
+          ogDescription: "Test Description",
+          ogImage: { url: "example.com" },
+        },
+      });
+
+      const input = `
 ## test
 
 [https://example.com](https://example.com)
   `;
-    const { value } = await processor.process(input);
-    const expected = `<h2>test</h2>
+      const { value } = await processor.process(input);
+      const expected = `<h2>test</h2>
 <div><a href="https://example.com/"><div><div><div>Test Site Title</div><div>Test Description</div></div><div><img src="https://www.google.com/s2/favicons?domain=example.com" width="14" height="14" alt="favicon"><span>example.com</span></div></div><div></div></a></div>
 `;
-    expect(value.toString()).toBe(expected);
-  });
-
-  test("title and description are sanitized", async () => {
-    // biome-ignore lint/suspicious/noExplicitAny: for open-graph-scraper mock
-    const mockedClient = vi.mocked(client as any);
-    mockedClient.mockResolvedValueOnce({
-      error: false,
-      result: {
-        ogTitle: "evil title<script>alert(1)</script>",
-        ogDescription: "evil description<script>alert(1)</script>",
-      },
+      expect(value.toString()).toBe(expected);
     });
 
-    const input = `
+    test("title and description are sanitized", async () => {
+      // biome-ignore lint/suspicious/noExplicitAny: for open-graph-scraper mock
+      const mockedClient = vi.mocked(client as any);
+      mockedClient.mockResolvedValueOnce({
+        error: false,
+        result: {
+          ogTitle: "evil title<script>alert(1)</script>",
+          ogDescription: "evil description<script>alert(1)</script>",
+        },
+      });
+
+      const input = `
 ## test
 
 [https://example.com](https://example.com)
 `;
-    const { value } = await processor.process(input);
-    const expected = `<h2>test</h2>
+      const { value } = await processor.process(input);
+      const expected = `<h2>test</h2>
 <div><a href="https://example.com/"><div><div><div>evil title</div><div>evil description</div></div><div><img src="https://www.google.com/s2/favicons?domain=example.com" width="14" height="14" alt="favicon"><span>example.com</span></div></div><div></div></a></div>
 `;
-    expect(value.toString()).toBe(expected);
+      expect(value.toString()).toBe(expected);
+    });
+  });
+
+  describe("Options", () => {
+    describe("cache", () => {
+      test("Caches ogImage if cache option is enabled", async () => {
+        // biome-ignore lint/suspicious/noExplicitAny: for open-graph-scraper mock
+        const mockedClient = vi.mocked(client as any);
+        mockedClient.mockResolvedValueOnce({
+          error: false,
+          result: {
+            ogTitle: "Cached Title",
+            ogDescription: "Cached Description",
+            ogImage: { url: "http://example.com/cached-image.jpg" },
+          },
+        });
+
+        const input = `
+## test
+
+[https://example.com](https://example.com)
+`;
+        const processorWithCache = remark()
+          .use(markdown)
+          .use(remarkLinkCard, { cache: true })
+          .use(html);
+        const { value } = await processorWithCache.process(input);
+        expect(value.toString()).toContain(`src="/remark-link-card-plus/`);
+      });
+    });
+
+    describe("shortenUrl", () => {
+      test("Shortens URL if shortenUrl option is enabled", async () => {
+        const input = `
+## test
+
+[https://example.com/long/path/to/resource](https://example.com/long/path/to/resource)
+`;
+        const processorWithShorten = remark()
+          .use(markdown)
+          .use(remarkLinkCard, { shortenUrl: true })
+          .use(html);
+        const { value } = await processorWithShorten.process(input);
+        expect(value.toString()).toContain("<span>example.com</span>");
+      });
+    });
   });
 });
