@@ -34,12 +34,11 @@ const remarkLinkCard: Plugin<[Options]> = // biome-ignore lint/suspicious/noExpl
     const transformers: (() => Promise<void>)[] = [];
     // biome-ignore lint/suspicious/noExplicitAny: FIXME
     visit(tree, "paragraph", (paragraphNode: any, index) => {
-      if (paragraphNode && paragraphNode.data !== undefined) return;
       if (paragraphNode.children.length !== 1) return;
 
       // biome-ignore lint/suspicious/noExplicitAny: FIXME
       visit(paragraphNode, "link", (linkNode: any) => {
-        if (linkNode.url !== linkNode.children.at(0)?.value) {
+        if (!isSameUrlValue(linkNode.url, linkNode.children.at(0)?.value)) {
           return;
         }
 
@@ -62,6 +61,15 @@ const remarkLinkCard: Plugin<[Options]> = // biome-ignore lint/suspicious/noExpl
 
     return tree;
   };
+
+
+const isSameUrlValue = (a: string, b: string) => {
+  try {
+    return new URL(a).toString() === new URL(b).toString();
+  } catch (_) {
+    return false;
+  }
+}
 
 const getOpenGraph = async (
   targetUrl: URL,
