@@ -25,38 +25,32 @@ type LinkCardData = {
   title: string;
   description: string;
   faviconUrl: string;
-  ogImageUrl: string;
-  ogImageAlt: string;
+  ogImageUrl?: string;
   url: URL;
 };
 
-const remarkLinkCard: Plugin<[Options]> =
-  // biome-ignore lint/suspicious/noExplicitAny: FIXME
+const remarkLinkCard: Plugin<[Options]> = // biome-ignore lint/suspicious/noExplicitAny: FIXME
   (options: Options) => async (tree: any) => {
     const transformers: (() => Promise<void>)[] = [];
     // biome-ignore lint/suspicious/noExplicitAny: FIXME
     visit(tree, "paragraph", (paragraphNode: any, index) => {
-      if (paragraphNode.children.length !== 1) {
-        return tree;
-      }
-
-      if (paragraphNode && paragraphNode.data !== undefined) {
-        return tree;
-      }
+      if (paragraphNode && paragraphNode.data !== undefined) return;
+      if (paragraphNode.children.length !== 1) return;
 
       // biome-ignore lint/suspicious/noExplicitAny: FIXME
-      visit(paragraphNode, "text", (textNode: any) => {
-        const urls = textNode.value.match(
-          /(https?:\/\/|www(?=\.))([-.\w]+)([^ \t\r\n]*)/g,
-        );
-        if (urls && urls.length === 1) {
-          transformers.push(async () => {
-            const data = await getLinkCardData(new URL(urls[0]), options);
-            const linkCardNode = createLinkCardNode(data);
-
-            paragraphNode.children = [linkCardNode];
-          });
+      visit(paragraphNode, "link", (linkNode: any) => {
+        if (linkNode.url !== linkNode.children.at(0)?.value) {
+          return;
         }
+
+        const url = new URL(linkNode.url);
+
+        transformers.push(async () => {
+          const data = await getLinkCardData(url, options);
+          const linkCardNode = createLinkCardNode(data);
+
+          tree.children.splice(index, 1, linkCardNode);
+        });
       });
     });
 
@@ -115,28 +109,30 @@ const getLinkCardData = async (url: URL, options: Options) => {
       : faviconUrl;
   }
 
-  let ogImageUrl = "";
-  if (ogResult?.ogImage?.url) {
+  let ogImageUrl = ogResult?.ogImage?.url;
+  try {
+    new URL(ogImageUrl ?? "").toString();
+  } catch (_) {
+    ogImageUrl = "";
+  }
+
+  if (ogImageUrl) {
     if (options?.cache) {
       const imageFilename = await downloadImage(
-        new URL(ogResult.ogImage.url),
+        new URL(ogImageUrl),
         path.join(process.cwd(), defaultSaveDirectory, defaultOutputDirectory),
       );
       ogImageUrl = imageFilename
         ? path.join(defaultOutputDirectory, imageFilename)
-        : ogResult.ogImage.url;
-    } else {
-      ogImageUrl = ogResult.ogImage.url;
+        : ogImageUrl;
     }
   }
-  const ogImageAlt = ogResult?.ogImage?.alt || title;
 
   return {
     title,
     description,
     faviconUrl,
     ogImageUrl,
-    ogImageAlt,
     url,
   };
 };
@@ -149,11 +145,11 @@ const downloadImage = async (url: URL, saveDirectory: string) => {
   try {
     await access(saveFilePath);
     return filename;
-  } catch (error) {}
+  } catch (_) {}
 
   try {
     await access(saveDirectory);
-  } catch (error) {
+  } catch (_) {
     await mkdir(saveDirectory, { recursive: true });
   }
 
@@ -204,45 +200,53 @@ const className = (value: string) => {
 };
 
 const createLinkCardNode = (data: LinkCardData) => {
-  const { title, description, faviconUrl, ogImageUrl, ogImageAlt, url } = data;
+  const { title, description, faviconUrl, ogImageUrl, url } = data;
   return h(
-    "a",
+    "div",
     {
-      className: className("link"),
-      href: url.toString(),
-      rel: "noreferrer noopener",
-      target: "_blank",
+      className: className("wrapper"),
     },
     [
-      h("div", { className: className("main") }, [
-        h("div", { className: className("content") }, [
-          h("div", { className: className("title") }, [text(title)]),
-          h("div", { className: className("description") }, [
-            text(description),
+      h(
+        "a",
+        {
+          className: className("card"),
+          href: url.toString(),
+          rel: "noreferrer noopener",
+          target: "_blank",
+        },
+        [
+          h("div", { className: className("main") }, [
+            h("div", { className: className("content") }, [
+              h("div", { className: className("title") }, [text(title)]),
+              h("div", { className: className("description") }, [
+                text(description),
+              ]),
+            ]),
+            h("div", { className: className("meta") }, [
+              faviconUrl
+                ? h("img", {
+                    className: className("favicon"),
+                    src: faviconUrl,
+                    width: 14,
+                    height: 14,
+                    alt: "favicon",
+                  })
+                : h("div"),
+              h("span", { className: className("url") }, [text(url.hostname)]),
+            ]),
           ]),
-        ]),
-        h("div", { className: className("meta") }, [
-          faviconUrl
-            ? h("img", {
-                className: className("favicon"),
-                src: faviconUrl,
-                width: 14,
-                height: 14,
-                alt: "favicon",
-              })
+          ogImageUrl
+            ? h("div", { className: className("thumbnail") }, [
+                h("img", {
+                  src: ogImageUrl,
+                  className: className("image"),
+                  alt: "ogImage",
+                }),
+              ])
             : h("div"),
-          h("span", { className: className("url") }, [text(url.hostname)]),
-        ]),
-      ]),
-      ogImageUrl
-        ? h("div", { className: className("thumbnail") }, [
-            h("img", {
-              src: ogImageUrl,
-              className: className("image"),
-              alt: "ogImage",
-            }),
-          ])
-        : h("div"),
+        ],
+      ),
     ],
   );
 };
