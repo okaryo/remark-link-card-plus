@@ -1,0 +1,9 @@
+.github/
+example/
+node_modules/
+public/
+src/
+.gitignore
+biome.json
+tsconfig.json
+tsconfig.build.json

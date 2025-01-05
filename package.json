@@ -1,8 +1,9 @@
 {
   "name": "remark-link-card-plus",
   "version": "0.0.1",
-  "description": "Remark plugin to convert text links to link cards inspired by gatsby-remark-link-card-plus",
+  "description": "Remark plugin to convert text links to link cards",
   "main": "./build/index.js",
+  "types": "./build/index.d.ts",
   "type": "module",
   "scripts": {
     "dev": "tsc -w",
@@ -11,11 +12,15 @@
     "check": "biome check ./src",
     "check:fix": "biome check --write --unsafe ./src",
     "check:ci": "biome ci ./src",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "npm run build"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/okaryo/remark-link-card-plus.git"
+  },
+  "engines": {
+    "node": ">=12"
   },
   "keywords": [
     "unified",
@@ -25,7 +30,7 @@
     "link",
     "card"
   ],
-  "author": "gladevise",
+  "author": "okaryo",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/okaryo/remark-link-card-plus/issues"
