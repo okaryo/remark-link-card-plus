@@ -22,7 +22,7 @@ vi.mock("open-graph-scraper", () => {
       result: {
         ogTitle: "Test Site Title",
         ogDescription: "Test Description",
-        ogImage: { url: "http://example.com" },
+        ogImage: [{ url: "http://example.com" }],
       },
     }),
   };

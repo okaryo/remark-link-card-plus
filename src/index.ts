@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { access, mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
+import type { Root, Text } from "mdast";
 import client from "open-graph-scraper";
 import type { ErrorResult } from "open-graph-scraper/types/lib/types";
 import sanitizeHtml from "sanitize-html";
@@ -15,12 +16,6 @@ type Options = {
   shortenUrl?: boolean;
 };
 
-type OpenGraphResult = {
-  ogTitle?: string;
-  ogDescription?: string;
-  ogImage?: { url: string; alt?: string };
-};
-
 type LinkCardData = {
   title: string;
   description: string;
@@ -29,16 +24,20 @@ type LinkCardData = {
   url: URL;
 };
 
-const remarkLinkCard: Plugin<[Options]> = // biome-ignore lint/suspicious/noExplicitAny: FIXME
-  (options: Options) => async (tree: any) => {
+const remarkLinkCard: Plugin<[Options], Root> =
+  (options: Options) => async (tree) => {
     const transformers: (() => Promise<void>)[] = [];
-    // biome-ignore lint/suspicious/noExplicitAny: FIXME
-    visit(tree, "paragraph", (paragraphNode: any, index) => {
+    visit(tree, "paragraph", (paragraphNode, index) => {
       if (paragraphNode.children.length !== 1) return;
 
-      // biome-ignore lint/suspicious/noExplicitAny: FIXME
-      visit(paragraphNode, "link", (linkNode: any) => {
-        if (!isSameUrlValue(linkNode.url, linkNode.children.at(0)?.value)) {
+      visit(paragraphNode, "link", (linkNode) => {
+        const hasOneChildText =
+          linkNode.children.length === 1 &&
+          linkNode.children[0].type === "text";
+        if (!hasOneChildText) return;
+
+        const childText = linkNode.children[0] as Text;
+        if (!isSameUrlValue(linkNode.url, childText.value)) {
           return;
         }
 
@@ -48,7 +47,10 @@ const remarkLinkCard: Plugin<[Options]> = // biome-ignore lint/suspicious/noExpl
           const data = await getLinkCardData(url, options);
           const linkCardNode = createLinkCardNode(data);
 
-          tree.children.splice(index, 1, linkCardNode);
+          if (index) {
+            // @ts-expect-error `Element` is processed by hast
+            tree.children.splice(index, 1, linkCardNode);
+          }
         });
       });
     });
@@ -70,15 +72,13 @@ const isSameUrlValue = (a: string, b: string) => {
   }
 };
 
-const getOpenGraph = async (
-  targetUrl: URL,
-): Promise<OpenGraphResult | undefined> => {
+const getOpenGraph = async (targetUrl: URL) => {
   try {
     const { result } = await client({
       url: targetUrl.toString(),
       timeout: 10000,
     });
-    return result as OpenGraphResult;
+    return result;
   } catch (error) {
     const ogError = error as ErrorResult;
     console.error(
@@ -107,18 +107,27 @@ const getLinkCardData = async (url: URL, options: Options) => {
 
   let faviconUrl = await getFaviconImageSrc(url);
   if (options?.cache) {
-    const faviconFilename = await downloadImage(
-      new URL(faviconUrl),
-      path.join(process.cwd(), defaultSaveDirectory, defaultOutputDirectory),
-    );
-    faviconUrl = faviconFilename
-      ? path.join(defaultOutputDirectory, faviconFilename)
-      : faviconUrl;
+    try {
+      const faviconFilename = await downloadImage(
+        new URL(faviconUrl),
+        path.join(process.cwd(), defaultSaveDirectory, defaultOutputDirectory),
+      );
+      faviconUrl = faviconFilename
+        ? path.join(defaultOutputDirectory, faviconFilename)
+        : faviconUrl;
+    } catch (error) {
+      console.error(
+        `[remark-link-card-plus] Error: Failed to download favicon from ${faviconUrl}\n ${error}`,
+      );
+    }
   }
 
-  let ogImageUrl = ogResult?.ogImage?.url;
+  let ogImageUrl =
+    ogResult?.ogImage && ogResult.ogImage.length > 0
+      ? ogResult?.ogImage?.[0].url
+      : "";
   try {
-    new URL(ogImageUrl ?? "").toString();
+    new URL(ogImageUrl).toString();
   } catch (_) {
     ogImageUrl = "";
   }
@@ -177,8 +186,23 @@ const downloadImage = async (url: URL, saveDirectory: string) => {
   return filename;
 };
 
-// biome-ignore lint/suspicious/noExplicitAny: FIXME
-const h = (type: string, attrs = {}, children: any[] = []) => {
+type Element =
+  | {
+      type: "element";
+      tagName: string;
+      data: {
+        hName: string;
+        hProperties: Record<string, string | number>;
+        hChildren: Element[];
+      };
+      properties: Record<string, string | number>;
+      children: Element[];
+    }
+  | {
+      type: "text";
+      value: string;
+    };
+const hast = (type: string, attrs = {}, children: Element[] = []): Element => {
   return {
     type: "element",
     tagName: type,
@@ -192,7 +216,7 @@ const h = (type: string, attrs = {}, children: any[] = []) => {
   };
 };
 
-const text = (value = "") => {
+const text = (value = ""): Element => {
   const sanitized = sanitizeHtml(value);
 
   return {
@@ -206,15 +230,15 @@ const className = (value: string) => {
   return `${prefix}__${value}`;
 };
 
-const createLinkCardNode = (data: LinkCardData) => {
+const createLinkCardNode = (data: LinkCardData): Element => {
   const { title, description, faviconUrl, ogImageUrl, url } = data;
-  return h(
+  return hast(
     "div",
     {
-      className: className("wrapper"),
+      className: className("container"),
     },
     [
-      h(
+      hast(
         "a",
         {
           className: className("card"),
@@ -223,35 +247,37 @@ const createLinkCardNode = (data: LinkCardData) => {
           target: "_blank",
         },
         [
-          h("div", { className: className("main") }, [
-            h("div", { className: className("content") }, [
-              h("div", { className: className("title") }, [text(title)]),
-              h("div", { className: className("description") }, [
+          hast("div", { className: className("main") }, [
+            hast("div", { className: className("content") }, [
+              hast("div", { className: className("title") }, [text(title)]),
+              hast("div", { className: className("description") }, [
                 text(description),
               ]),
             ]),
-            h("div", { className: className("meta") }, [
+            hast("div", { className: className("meta") }, [
               faviconUrl
-                ? h("img", {
+                ? hast("img", {
                     className: className("favicon"),
                     src: faviconUrl,
                     width: 14,
                     height: 14,
                     alt: "favicon",
                   })
-                : h("div"),
-              h("span", { className: className("url") }, [text(url.hostname)]),
+                : hast("div"),
+              hast("span", { className: className("url") }, [
+                text(url.hostname),
+              ]),
             ]),
           ]),
           ogImageUrl
-            ? h("div", { className: className("thumbnail") }, [
-                h("img", {
+            ? hast("div", { className: className("thumbnail") }, [
+                hast("img", {
                   src: ogImageUrl,
                   className: className("image"),
                   alt: "ogImage",
                 }),
               ])
-            : h("div"),
+            : hast("div"),
         ],
       ),
     ],
