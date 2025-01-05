@@ -24,8 +24,15 @@ type LinkCardData = {
   url: URL;
 };
 
+const defaultOptions: Options = {
+  cache: false,
+  shortenUrl: true,
+};
+
 const remarkLinkCard: Plugin<[Options], Root> =
-  (options: Options) => async (tree) => {
+  (userOptions: Options) => async (tree) => {
+    const options = { ...defaultOptions, ...userOptions };
+
     const transformers: (() => Promise<void>)[] = [];
     visit(tree, "paragraph", (paragraphNode, index) => {
       if (paragraphNode.children.length !== 1) return;
