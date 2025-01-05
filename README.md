@@ -1,6 +1,11 @@
 # remark-link-card-plus
 
+[![CI](https://github.com/okaryo/remark-link-card-plus/actions/workflows/ci.yml/badge.svg)](https://github.com/okaryo/remark-link-card-plus/actions/workflows/ci.yml)
+[![npm version](https://img.shields.io/npm/v/remark-link-card-plus)](https://www.npmjs.com/package/remark-link-card-plus)
+
 [Remark](https://github.com/remarkjs/remark) plugin to convert text links to link cards, building upon and improving [remark-link-card](https://github.com/gladevise/remark-link-card).
+
+You can see it in action on the [demo page](https://remark-link-card-plus.pages.dev/).
 
 ## Features
 
@@ -117,7 +122,3 @@ Link cards can be styled using the following class names:
 ```
 
 Feel free to customize these styles as needed.
-
-## Demo Page
-
-Check out the [demo page](https://remark-link-card-plus.pages.dev/) to see `remark-link-card-plus` in action.
