@@ -120,4 +120,4 @@ Feel free to customize these styles as needed.
 
 ## Demo Page
 
-Check out the [demo page](#) to see `remark-link-card-plus` in action.
+Check out the [demo page](https://remark-link-card-plus.pages.dev/) to see `remark-link-card-plus` in action.

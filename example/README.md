@@ -4,7 +4,7 @@ This directory contains an example demo page showcasing the functionality of `re
 
 ## Demo Page
 
-You can view the live demo page [here](WIP).
+You can view the live demo page [here](https://remark-link-card-plus.pages.dev/).
 
 ## Running Locally
 
