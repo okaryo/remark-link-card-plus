@@ -17,10 +17,12 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
+      - name: Build project
+        run: npm run build
       - name: Install dependencies
         run: npm ci
         working-directory: example
-      - name: Build project
+      - name: Build demo page
         run: npm run build
         working-directory: example
       - name: Deploy to GitHub Pages
