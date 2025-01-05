@@ -1,0 +1,15 @@
+---
+import { getCollection } from 'astro:content';
+import Layout from '../layouts/Layout.astro';
+import '../styles/remark-link-card.css';
+
+const blog = await getCollection("demo");
+const example = blog.find(post => post.slug === "example")!;
+const { Content } = await example.render();
+---
+
+<Layout>
+	<article class="prose prose-lg prose-slate">
+		<Content />
+	</article>
+</Layout>
