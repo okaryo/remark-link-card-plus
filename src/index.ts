@@ -14,6 +14,7 @@ const defaultOutputDirectory = "/remark-link-card-plus/";
 type Options = {
   cache?: boolean;
   shortenUrl?: boolean;
+  thumbnailPosition?: "right" | "left";
 };
 
 type LinkCardData = {
@@ -27,6 +28,7 @@ type LinkCardData = {
 const defaultOptions: Options = {
   cache: false,
   shortenUrl: true,
+  thumbnailPosition: "right",
 };
 
 const remarkLinkCard: Plugin<[Options], Root> =
@@ -52,7 +54,7 @@ const remarkLinkCard: Plugin<[Options], Root> =
 
         transformers.push(async () => {
           const data = await getLinkCardData(url, options);
-          const linkCardNode = createLinkCardNode(data);
+          const linkCardNode = createLinkCardNode(data, options);
 
           if (index) {
             // @ts-expect-error `Element` is processed by hast
@@ -237,8 +239,19 @@ const className = (value: string) => {
   return `${prefix}__${value}`;
 };
 
-const createLinkCardNode = (data: LinkCardData): Element => {
+const createLinkCardNode = (data: LinkCardData, options: Options): Element => {
   const { title, description, faviconUrl, ogImageUrl, url } = data;
+  const isThumbnailLeft = options.thumbnailPosition === "left";
+  const thumbnail = ogImageUrl
+    ? hast("div", { className: className("thumbnail") }, [
+        hast("img", {
+          src: ogImageUrl,
+          className: className("image"),
+          alt: "ogImage",
+        }),
+      ])
+    : hast("div");
+
   return hast(
     "div",
     {
@@ -254,6 +267,7 @@ const createLinkCardNode = (data: LinkCardData): Element => {
           target: "_blank",
         },
         [
+          ...(isThumbnailLeft ? [thumbnail] : []),
           hast("div", { className: className("main") }, [
             hast("div", { className: className("content") }, [
               hast("div", { className: className("title") }, [text(title)]),
@@ -276,15 +290,7 @@ const createLinkCardNode = (data: LinkCardData): Element => {
               ]),
             ]),
           ]),
-          ogImageUrl
-            ? hast("div", { className: className("thumbnail") }, [
-                hast("img", {
-                  src: ogImageUrl,
-                  className: className("image"),
-                  alt: "ogImage",
-                }),
-              ])
-            : hast("div"),
+          ...(!isThumbnailLeft ? [thumbnail] : []),
         ],
       ),
     ],

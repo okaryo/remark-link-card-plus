@@ -191,5 +191,68 @@ describe("remark-link-card-plus", () => {
         expect(value.toString()).toContain("<span>example.com</span>");
       });
     });
+    describe("thumbnailPosition", () => {
+      test("Places thumbnail on the right by default", async () => {
+        const input = `
+## test
+
+[https://example.com](https://example.com)
+`;
+        const processorWithDefaultThumbnail = remark()
+          .use(markdown)
+          .use(remarkLinkCard, {})
+          .use(html);
+
+        const { value } = await processorWithDefaultThumbnail.process(input);
+
+        expect(value.toString()).toContain(
+          `<img src="http://example.com" alt="ogImage"></div></a></div>`,
+        );
+      });
+
+      test("Places thumbnail on the left when specified", async () => {
+        const input = `
+## test
+
+[https://example.com](https://example.com)
+`;
+        const processorWithLeftThumbnail = remark()
+          .use(markdown)
+          .use(remarkLinkCard, { thumbnailPosition: "left" })
+          .use(html);
+
+        const { value } = await processorWithLeftThumbnail.process(input);
+
+        expect(value.toString()).toContain(
+          `<a href="https://example.com/"><div><img src="http://example.com" alt="ogImage"></div>`,
+        );
+      });
+
+      test("Does not include thumbnail div if ogImageUrl is missing", async () => {
+        const mockedClient = vi.mocked(client as any);
+        mockedClient.mockResolvedValueOnce({
+          error: false,
+          result: {
+            ogTitle: "No Thumbnail Title",
+            ogDescription: "No Thumbnail Description",
+            ogImage: [],
+          },
+        });
+
+        const input = `
+## test
+
+[https://example.com](https://example.com)
+`;
+        const processorWithoutThumbnail = remark()
+          .use(markdown)
+          .use(remarkLinkCard, { thumbnailPosition: "left" })
+          .use(html);
+
+        const { value } = await processorWithoutThumbnail.process(input);
+
+        expect(value.toString()).not.toContain(`alt="ogImage"`);
+      });
+    });
   });
 });
