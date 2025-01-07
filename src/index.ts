@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import { access, mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
-import type { Root, Text } from "mdast";
+import type { Html, Root, Text } from "mdast";
 import client from "open-graph-scraper";
 import type { ErrorResult } from "open-graph-scraper/types/lib/types";
 import sanitizeHtml from "sanitize-html";
@@ -22,6 +22,7 @@ type LinkCardData = {
   description: string;
   faviconUrl: string;
   ogImageUrl?: string;
+  displayUrl: string;
   url: URL;
 };
 
@@ -57,7 +58,6 @@ const remarkLinkCard: Plugin<[Options], Root> =
           const linkCardNode = createLinkCardNode(data, options);
 
           if (index) {
-            // @ts-expect-error `Element` is processed by hast
             tree.children.splice(index, 1, linkCardNode);
           }
         });
@@ -115,7 +115,7 @@ const getLinkCardData = async (url: URL, options: Options) => {
   const description = ogResult?.ogDescription || "";
 
   let faviconUrl = await getFaviconImageSrc(url);
-  if (options?.cache) {
+  if (options.cache) {
     try {
       const faviconFilename = await downloadImage(
         new URL(faviconUrl),
@@ -142,7 +142,7 @@ const getLinkCardData = async (url: URL, options: Options) => {
   }
 
   if (ogImageUrl) {
-    if (options?.cache) {
+    if (options.cache) {
       const imageFilename = await downloadImage(
         new URL(ogImageUrl),
         path.join(process.cwd(), defaultSaveDirectory, defaultOutputDirectory),
@@ -153,11 +153,21 @@ const getLinkCardData = async (url: URL, options: Options) => {
     }
   }
 
+  let displayUrl = options.shortenUrl ? url.hostname : url.toString();
+  try {
+    displayUrl = decodeURI(displayUrl);
+  } catch (error) {
+    console.error(
+      `[remark-link-card-plus] Error: Cannot decode url: "${url}"\n ${error}`,
+    );
+  }
+
   return {
     title,
     description,
     faviconUrl,
     ogImageUrl,
+    displayUrl,
     url,
   };
 };
@@ -195,106 +205,55 @@ const downloadImage = async (url: URL, saveDirectory: string) => {
   return filename;
 };
 
-type Element =
-  | {
-      type: "element";
-      tagName: string;
-      data: {
-        hName: string;
-        hProperties: Record<string, string | number>;
-        hChildren: Element[];
-      };
-      properties: Record<string, string | number>;
-      children: Element[];
-    }
-  | {
-      type: "text";
-      value: string;
-    };
-const hast = (type: string, attrs = {}, children: Element[] = []): Element => {
-  return {
-    type: "element",
-    tagName: type,
-    data: {
-      hName: type,
-      hProperties: attrs,
-      hChildren: children,
-    },
-    properties: attrs,
-    children,
-  };
-};
-
-const text = (value = ""): Element => {
-  const sanitized = sanitizeHtml(value);
-
-  return {
-    type: "text",
-    value: sanitized,
-  };
-};
-
 const className = (value: string) => {
   const prefix = "remark-link-card-plus";
   return `${prefix}__${value}`;
 };
 
-const createLinkCardNode = (data: LinkCardData, options: Options): Element => {
-  const { title, description, faviconUrl, ogImageUrl, url } = data;
+const createLinkCardNode = (data: LinkCardData, options: Options): Html => {
+  const { title, description, faviconUrl, ogImageUrl, displayUrl, url } = data;
   const isThumbnailLeft = options.thumbnailPosition === "left";
-  const thumbnail = ogImageUrl
-    ? hast("div", { className: className("thumbnail") }, [
-        hast("img", {
-          src: ogImageUrl,
-          className: className("image"),
-          alt: "ogImage",
-        }),
-      ])
-    : hast("div");
 
-  return hast(
-    "div",
-    {
-      className: className("container"),
-    },
-    [
-      hast(
-        "a",
-        {
-          className: className("card"),
-          href: url.toString(),
-          rel: "noreferrer noopener",
-          target: "_blank",
-        },
-        [
-          ...(isThumbnailLeft ? [thumbnail] : []),
-          hast("div", { className: className("main") }, [
-            hast("div", { className: className("content") }, [
-              hast("div", { className: className("title") }, [text(title)]),
-              hast("div", { className: className("description") }, [
-                text(description),
-              ]),
-            ]),
-            hast("div", { className: className("meta") }, [
-              faviconUrl
-                ? hast("img", {
-                    className: className("favicon"),
-                    src: faviconUrl,
-                    width: 14,
-                    height: 14,
-                    alt: "favicon",
-                  })
-                : hast("div"),
-              hast("span", { className: className("url") }, [
-                text(url.hostname),
-              ]),
-            ]),
-          ]),
-          ...(!isThumbnailLeft ? [thumbnail] : []),
-        ],
-      ),
-    ],
-  );
+  const thumbnail = ogImageUrl
+    ? `
+<div class="${className("thumbnail")}">
+  <img src="${ogImageUrl}" class="${className("image")}" alt="ogImage">
+</div>`.trim()
+    : "";
+
+  const mainContent = `
+<div class="${className("main")}">
+  <div class="${className("content")}">
+    <div class="${className("title")}">${sanitizeHtml(title)}</div>
+    <div class="${className("description")}">${sanitizeHtml(description)}</div>
+  </div>
+  <div class="${className("meta")}">
+    ${faviconUrl ? `<img src="${faviconUrl}" class="${className("favicon")}" width="14" height="14" alt="favicon">` : ""}
+    <span class="${className("url")}">${sanitizeHtml(displayUrl)}</span>
+  </div>
+</div>
+`
+    .replace(/\n\s*\n/g, "\n")
+    .trim();
+
+  const content = isThumbnailLeft
+    ? `
+${thumbnail}
+${mainContent}`
+    : `
+${mainContent}
+${thumbnail}`;
+
+  return {
+    type: "html",
+    value: `
+<div class="${className("container")}">
+  <a href="${url.toString()}" target="_blank" rel="noreferrer noopener" class="${className("card")}">
+    ${content.trim()}
+  </a>
+</div>
+`.trim(),
+  };
 };
 
 export default remarkLinkCard;

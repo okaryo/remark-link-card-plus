@@ -2,8 +2,6 @@ import { http } from "msw";
 import { setupServer } from "msw/node";
 import client from "open-graph-scraper";
 import { remark } from "remark";
-import html from "remark-html";
-import markdown from "remark-parse";
 import {
   afterAll,
   beforeAll,
@@ -38,46 +36,70 @@ beforeAll(() => server.listen());
 beforeEach(() => server.resetHandlers());
 afterAll(() => server.close());
 
-const processor = remark().use(markdown).use(remarkLinkCard, {}).use(html);
+const processor = remark().use(remarkLinkCard, {});
+
+const removeLineLeadingSpaces = (input: string) => {
+  return input
+    .split("\n")
+    .map((line) => line.trimStart())
+    .join("\n");
+};
 
 describe("remark-link-card-plus", () => {
   describe("Basic usage", () => {
     test("Convert a line with only a link into a card", async () => {
-      const input = `
-## test
+      const input = `## test
 
 [https://example.com/path](https://example.com/path)
-
 `;
       const { value } = await processor.process(input);
-      const expected = `<h2>test</h2>
-<div><a href="https://example.com/path"><div><div><div>Test Site Title</div><div>Test Description</div></div><div><img src="https://www.google.com/s2/favicons?domain=example.com" width="14" height="14" alt="favicon"><span>example.com</span></div></div><div><img src="http://example.com" alt="ogImage"></div></a></div>
+      const expected = `## test
+
+<div class="remark-link-card-plus__container">
+  <a href="https://example.com/path" target="_blank" rel="noreferrer noopener" class="remark-link-card-plus__card">
+    <div class="remark-link-card-plus__main">
+      <div class="remark-link-card-plus__content">
+        <div class="remark-link-card-plus__title">Test Site Title</div>
+        <div class="remark-link-card-plus__description">Test Description</div>
+      </div>
+      <div class="remark-link-card-plus__meta">
+        <img src="https://www.google.com/s2/favicons?domain=example.com" class="remark-link-card-plus__favicon" width="14" height="14" alt="favicon">
+        <span class="remark-link-card-plus__url">example.com</span>
+      </div>
+    </div>
+    <div class="remark-link-card-plus__thumbnail">
+      <img src="http://example.com" class="remark-link-card-plus__image" alt="ogImage">
+    </div>
+  </a>
+</div>
 `;
-      expect(value.toString()).toBe(expected);
+      expect(removeLineLeadingSpaces(value.toString())).toBe(
+        removeLineLeadingSpaces(expected),
+      );
     });
 
     test("Does not convert if a link and text exist on the same line", async () => {
-      const input = `
-## test
+      const input = `## test
 
-[https://example.com](https://example.com) test
+[example link](https://example.com/path) test
 `;
-      const { value } = await processor.process(input);
-      const expected = `<h2>test</h2>
-<p><a href="https://example.com">https://example.com</a> test</p>
+      const { value } = await processor().process(input);
+      const expected = `## test
+
+[example link](https://example.com/path) test
 `;
       expect(value.toString()).toBe(expected);
     });
 
     test("Does not convert if link text and URL are different", async () => {
-      const input = `
-## test
+      const input = `## test
 
 [example](https://example.com)
 `;
-      const { value } = await processor.process(input);
-      const expected = `<h2>test</h2>
-<p><a href="https://example.com">example</a></p>
+      const { value } = await processor().process(input);
+      const expected = `## test
+
+[example](https://example.com)
 `;
       expect(value.toString()).toBe(expected);
     });
@@ -88,16 +110,33 @@ describe("remark-link-card-plus", () => {
           return new Response(null, { status: 404 });
         }),
       );
-      const input = `
-## test
+      const input = `## test
 
 [https://example.com](https://example.com)
-  `;
-      const { value } = await processor.process(input);
-      const expected = `<h2>test</h2>
-<div><a href="https://example.com/"><div><div><div>Test Site Title</div><div>Test Description</div></div><div><div></div><span>example.com</span></div></div><div><img src="http://example.com" alt="ogImage"></div></a></div>
 `;
-      expect(value.toString()).toBe(expected);
+      const { value } = await processor().process(input);
+      const expected = `## test
+
+<div class="remark-link-card-plus__container">
+  <a href="https://example.com/" target="_blank" rel="noreferrer noopener" class="remark-link-card-plus__card">
+    <div class="remark-link-card-plus__main">
+      <div class="remark-link-card-plus__content">
+        <div class="remark-link-card-plus__title">Test Site Title</div>
+        <div class="remark-link-card-plus__description">Test Description</div>
+      </div>
+      <div class="remark-link-card-plus__meta">
+        <span class="remark-link-card-plus__url">example.com</span>
+      </div>
+    </div>
+    <div class="remark-link-card-plus__thumbnail">
+      <img src="http://example.com" class="remark-link-card-plus__image" alt="ogImage">
+    </div>
+  </a>
+</div>
+`;
+      expect(removeLineLeadingSpaces(value.toString())).toBe(
+        removeLineLeadingSpaces(expected),
+      );
     });
 
     test("Does not show an og image if the URL format is invalid", async () => {
@@ -112,16 +151,31 @@ describe("remark-link-card-plus", () => {
         },
       });
 
-      const input = `
-## test
+      const input = `## test
 
 [https://example.com](https://example.com)
-  `;
-      const { value } = await processor.process(input);
-      const expected = `<h2>test</h2>
-<div><a href="https://example.com/"><div><div><div>Test Site Title</div><div>Test Description</div></div><div><img src="https://www.google.com/s2/favicons?domain=example.com" width="14" height="14" alt="favicon"><span>example.com</span></div></div><div></div></a></div>
 `;
-      expect(value.toString()).toBe(expected);
+      const { value } = await processor.process(input);
+      const expected = `## test
+
+<div class="remark-link-card-plus__container">
+  <a href="https://example.com/" target="_blank" rel="noreferrer noopener" class="remark-link-card-plus__card">
+    <div class="remark-link-card-plus__main">
+      <div class="remark-link-card-plus__content">
+        <div class="remark-link-card-plus__title">Test Site Title</div>
+        <div class="remark-link-card-plus__description">Test Description</div>
+      </div>
+      <div class="remark-link-card-plus__meta">
+        <img src="https://www.google.com/s2/favicons?domain=example.com" class="remark-link-card-plus__favicon" width="14" height="14" alt="favicon">
+        <span class="remark-link-card-plus__url">example.com</span>
+      </div>
+    </div>
+  </a>
+</div>
+`;
+      expect(removeLineLeadingSpaces(value.toString())).toBe(
+        removeLineLeadingSpaces(expected),
+      );
     });
 
     test("title and description are sanitized", async () => {
@@ -135,16 +189,31 @@ describe("remark-link-card-plus", () => {
         },
       });
 
-      const input = `
-## test
+      const input = `## test
 
 [https://example.com](https://example.com)
 `;
       const { value } = await processor.process(input);
-      const expected = `<h2>test</h2>
-<div><a href="https://example.com/"><div><div><div>evil title</div><div>evil description</div></div><div><img src="https://www.google.com/s2/favicons?domain=example.com" width="14" height="14" alt="favicon"><span>example.com</span></div></div><div></div></a></div>
+      const expected = `## test
+
+<div class="remark-link-card-plus__container">
+  <a href="https://example.com/" target="_blank" rel="noreferrer noopener" class="remark-link-card-plus__card">
+    <div class="remark-link-card-plus__main">
+      <div class="remark-link-card-plus__content">
+        <div class="remark-link-card-plus__title">evil title</div>
+        <div class="remark-link-card-plus__description">evil description</div>
+      </div>
+      <div class="remark-link-card-plus__meta">
+        <img src="https://www.google.com/s2/favicons?domain=example.com" class="remark-link-card-plus__favicon" width="14" height="14" alt="favicon">
+        <span class="remark-link-card-plus__url">example.com</span>
+      </div>
+    </div>
+  </a>
+</div>
 `;
-      expect(value.toString()).toBe(expected);
+      expect(removeLineLeadingSpaces(value.toString())).toBe(
+        removeLineLeadingSpaces(expected),
+      );
     });
   });
 
@@ -162,15 +231,13 @@ describe("remark-link-card-plus", () => {
           },
         });
 
-        const input = `
-## test
+        const input = `## test
 
 [https://example.com](https://example.com)
 `;
-        const processorWithCache = remark()
-          .use(markdown)
-          .use(remarkLinkCard, { cache: true })
-          .use(html);
+        const processorWithCache = remark().use(remarkLinkCard, {
+          cache: true,
+        });
         const { value } = await processorWithCache.process(input);
         expect(value.toString()).toContain(`src="/remark-link-card-plus/`);
       });
@@ -178,57 +245,54 @@ describe("remark-link-card-plus", () => {
 
     describe("shortenUrl", () => {
       test("Shortens URL if shortenUrl option is enabled", async () => {
-        const input = `
-## test
+        const input = `## test
 
 [https://example.com/long/path/to/resource](https://example.com/long/path/to/resource)
 `;
-        const processorWithShorten = remark()
-          .use(markdown)
-          .use(remarkLinkCard, { shortenUrl: true })
-          .use(html);
+        const processorWithShorten = remark().use(remarkLinkCard, {
+          shortenUrl: true,
+        });
         const { value } = await processorWithShorten.process(input);
-        expect(value.toString()).toContain("<span>example.com</span>");
+        expect(value.toString()).toContain(
+          `<span class="remark-link-card-plus__url">example.com</span>`,
+        );
       });
     });
+
     describe("thumbnailPosition", () => {
       test("Places thumbnail on the right by default", async () => {
-        const input = `
-## test
+        const input = `## test
 
 [https://example.com](https://example.com)
 `;
-        const processorWithDefaultThumbnail = remark()
-          .use(markdown)
-          .use(remarkLinkCard, {})
-          .use(html);
-
+        const processorWithDefaultThumbnail = remark().use(remarkLinkCard, {});
         const { value } = await processorWithDefaultThumbnail.process(input);
-
-        expect(value.toString()).toContain(
-          `<img src="http://example.com" alt="ogImage"></div></a></div>`,
+        expect(removeLineLeadingSpaces(value.toString())).toContain(
+          `<img src="http://example.com" class="remark-link-card-plus__image" alt="ogImage">
+</div>
+</a>
+`,
         );
       });
 
       test("Places thumbnail on the left when specified", async () => {
-        const input = `
-## test
+        const input = `## test
 
 [https://example.com](https://example.com)
 `;
-        const processorWithLeftThumbnail = remark()
-          .use(markdown)
-          .use(remarkLinkCard, { thumbnailPosition: "left" })
-          .use(html);
-
+        const processorWithLeftThumbnail = remark().use(remarkLinkCard, {
+          thumbnailPosition: "left",
+        });
         const { value } = await processorWithLeftThumbnail.process(input);
-
-        expect(value.toString()).toContain(
-          `<a href="https://example.com/"><div><img src="http://example.com" alt="ogImage"></div>`,
+        expect(removeLineLeadingSpaces(value.toString())).toContain(
+          `<a href="https://example.com/" target="_blank" rel="noreferrer noopener" class="remark-link-card-plus__card">
+<div class="remark-link-card-plus__thumbnail">
+`,
         );
       });
 
       test("Does not include thumbnail div if ogImageUrl is missing", async () => {
+        // biome-ignore lint/suspicious/noExplicitAny: for open-graph-scraper mock
         const mockedClient = vi.mocked(client as any);
         mockedClient.mockResolvedValueOnce({
           error: false,
@@ -239,18 +303,14 @@ describe("remark-link-card-plus", () => {
           },
         });
 
-        const input = `
-## test
+        const input = `## test
 
 [https://example.com](https://example.com)
 `;
-        const processorWithoutThumbnail = remark()
-          .use(markdown)
-          .use(remarkLinkCard, { thumbnailPosition: "left" })
-          .use(html);
-
+        const processorWithoutThumbnail = remark().use(remarkLinkCard, {
+          thumbnailPosition: "left",
+        });
         const { value } = await processorWithoutThumbnail.process(input);
-
         expect(value.toString()).not.toContain(`alt="ogImage"`);
       });
     });
