@@ -3,7 +3,7 @@
 [![CI](https://github.com/okaryo/remark-link-card-plus/actions/workflows/ci.yml/badge.svg)](https://github.com/okaryo/remark-link-card-plus/actions/workflows/ci.yml)
 [![npm version](https://img.shields.io/npm/v/remark-link-card-plus)](https://www.npmjs.com/package/remark-link-card-plus)
 
-[Remark](https://github.com/remarkjs/remark) plugin to convert text links to link cards, building upon and improving [remark-link-card](https://github.com/gladevise/remark-link-card).
+[remark](https://github.com/remarkjs/remark) plugin to convert text links to link cards, building upon and improving [remark-link-card](https://github.com/gladevise/remark-link-card).
 
 You can see it in action on the [demo page](https://remark-link-card-plus.pages.dev/).
 
@@ -15,6 +15,7 @@ You can see it in action on the [demo page](https://remark-link-card-plus.pages.
 * **TypeScript support**: Fully rewritten in TypeScript for improved type safety and developer experience.
 * **Target blank**: Links in link cards now open in a new tab using `target="_blank"`.
 * **No link cards in lists**: Links inside list items (`listItem`) are not converted into link cards.
+* **Thumbnail position customization**: Select whether the thumbnail is displayed on the left or right of the card.
 
 ### Retained features:
 * **Options support**:
@@ -79,6 +80,7 @@ export default defineConfig({
         remarkLinkCard, {
           cache: true,
           shortenUrl: true,
+          thumbnailPosition: "right",
         },
       ],
     ],
@@ -92,6 +94,7 @@ export default defineConfig({
 |--------------|---------|---------|-----------------------------------------------------------------------------|
 | `cache`      | boolean | `false` | Caches Open Graph images and favicons locally. Images are saved to `process.cwd()/public/remark-link-card-plus/` and paths start with `/remark-link-card-plus/`. This reduces server load on the linked site. |
 | `shortenUrl` | boolean | `true`  | Displays only the hostname of the URL in the link card instead of the full URL. |
+| `thumbnailPosition` | string | `right`  | Specifies the position of the thumbnail in the card. Accepts `"left"` or `"right"`. |
 
 ## Styling
 
