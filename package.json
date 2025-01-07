@@ -20,7 +20,7 @@
     "url": "git+https://github.com/okaryo/remark-link-card-plus.git"
   },
   "engines": {
-    "node": ">=12"
+    "node": ">=12.22.12"
   },
   "keywords": [
     "unified",
