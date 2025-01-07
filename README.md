@@ -56,7 +56,7 @@ Inline links like [GitHub](https://github.com) will **not** be converted.
     .use(remarkLinkCard, { cache: true, shortenUrl: true })
     .process(exampleMarkdown);
 
-  console.log(result.contents);
+  console.log(result.value);
 })();
 ```
 
