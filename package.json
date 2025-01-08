@@ -20,7 +20,7 @@
     "url": "git+https://github.com/okaryo/remark-link-card-plus.git"
   },
   "engines": {
-    "node": ">=12"
+    "node": ">=18"
   },
   "keywords": [
     "unified",
@@ -42,13 +42,11 @@
     "@types/node": "^22.10.3",
     "@types/sanitize-html": "^2.13.0",
     "msw": "^2.7.0",
-    "node-html-parser": "^7.0.1",
     "remark": "^15.0.1",
     "typescript": "^5.7.2",
     "vitest": "^2.1.8"
   },
   "dependencies": {
-    "node-fetch": "^3.3.2",
     "open-graph-scraper": "^6.8.3",
     "sanitize-html": "^2.14.0",
     "unified": "^11.0.5",
