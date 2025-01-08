@@ -50,10 +50,110 @@ describe("remark-link-card-plus", () => {
     test("Convert a line with only a link into a card", async () => {
       const input = `## test
 
+https://example.com
+
+https://example.com/path
+
+<https://example.com>
+
+<https://example.com/path>
+
+[https://example.com](https://example.com)
+
 [https://example.com/path](https://example.com/path)
 `;
       const { value } = await processor.process(input);
       const expected = `## test
+
+<div class="remark-link-card-plus__container">
+  <a href="https://example.com/" target="_blank" rel="noreferrer noopener" class="remark-link-card-plus__card">
+    <div class="remark-link-card-plus__main">
+      <div class="remark-link-card-plus__content">
+        <div class="remark-link-card-plus__title">Test Site Title</div>
+        <div class="remark-link-card-plus__description">Test Description</div>
+      </div>
+      <div class="remark-link-card-plus__meta">
+        <img src="https://www.google.com/s2/favicons?domain=example.com" class="remark-link-card-plus__favicon" width="14" height="14" alt="favicon">
+        <span class="remark-link-card-plus__url">example.com</span>
+      </div>
+    </div>
+    <div class="remark-link-card-plus__thumbnail">
+      <img src="http://example.com" class="remark-link-card-plus__image" alt="ogImage">
+    </div>
+  </a>
+</div>
+
+<div class="remark-link-card-plus__container">
+  <a href="https://example.com/path" target="_blank" rel="noreferrer noopener" class="remark-link-card-plus__card">
+    <div class="remark-link-card-plus__main">
+      <div class="remark-link-card-plus__content">
+        <div class="remark-link-card-plus__title">Test Site Title</div>
+        <div class="remark-link-card-plus__description">Test Description</div>
+      </div>
+      <div class="remark-link-card-plus__meta">
+        <img src="https://www.google.com/s2/favicons?domain=example.com" class="remark-link-card-plus__favicon" width="14" height="14" alt="favicon">
+        <span class="remark-link-card-plus__url">example.com</span>
+      </div>
+    </div>
+    <div class="remark-link-card-plus__thumbnail">
+      <img src="http://example.com" class="remark-link-card-plus__image" alt="ogImage">
+    </div>
+  </a>
+</div>
+
+<div class="remark-link-card-plus__container">
+  <a href="https://example.com/" target="_blank" rel="noreferrer noopener" class="remark-link-card-plus__card">
+    <div class="remark-link-card-plus__main">
+      <div class="remark-link-card-plus__content">
+        <div class="remark-link-card-plus__title">Test Site Title</div>
+        <div class="remark-link-card-plus__description">Test Description</div>
+      </div>
+      <div class="remark-link-card-plus__meta">
+        <img src="https://www.google.com/s2/favicons?domain=example.com" class="remark-link-card-plus__favicon" width="14" height="14" alt="favicon">
+        <span class="remark-link-card-plus__url">example.com</span>
+      </div>
+    </div>
+    <div class="remark-link-card-plus__thumbnail">
+      <img src="http://example.com" class="remark-link-card-plus__image" alt="ogImage">
+    </div>
+  </a>
+</div>
+
+<div class="remark-link-card-plus__container">
+  <a href="https://example.com/path" target="_blank" rel="noreferrer noopener" class="remark-link-card-plus__card">
+    <div class="remark-link-card-plus__main">
+      <div class="remark-link-card-plus__content">
+        <div class="remark-link-card-plus__title">Test Site Title</div>
+        <div class="remark-link-card-plus__description">Test Description</div>
+      </div>
+      <div class="remark-link-card-plus__meta">
+        <img src="https://www.google.com/s2/favicons?domain=example.com" class="remark-link-card-plus__favicon" width="14" height="14" alt="favicon">
+        <span class="remark-link-card-plus__url">example.com</span>
+      </div>
+    </div>
+    <div class="remark-link-card-plus__thumbnail">
+      <img src="http://example.com" class="remark-link-card-plus__image" alt="ogImage">
+    </div>
+  </a>
+</div>
+
+<div class="remark-link-card-plus__container">
+  <a href="https://example.com/" target="_blank" rel="noreferrer noopener" class="remark-link-card-plus__card">
+    <div class="remark-link-card-plus__main">
+      <div class="remark-link-card-plus__content">
+        <div class="remark-link-card-plus__title">Test Site Title</div>
+        <div class="remark-link-card-plus__description">Test Description</div>
+      </div>
+      <div class="remark-link-card-plus__meta">
+        <img src="https://www.google.com/s2/favicons?domain=example.com" class="remark-link-card-plus__favicon" width="14" height="14" alt="favicon">
+        <span class="remark-link-card-plus__url">example.com</span>
+      </div>
+    </div>
+    <div class="remark-link-card-plus__thumbnail">
+      <img src="http://example.com" class="remark-link-card-plus__image" alt="ogImage">
+    </div>
+  </a>
+</div>
 
 <div class="remark-link-card-plus__container">
   <a href="https://example.com/path" target="_blank" rel="noreferrer noopener" class="remark-link-card-plus__card">
@@ -104,6 +204,68 @@ describe("remark-link-card-plus", () => {
       expect(value.toString()).toBe(expected);
     });
 
+    test("Does not convert links inside list items to link cards", async () => {
+      const input = `## test
+
+* list
+  * https://example.com
+  * [https://example.com](https://example.com)
+  * <https://example.com>
+  * https://example.com/path
+  * [https://example.com/path](https://example.com/path)
+  * <https://example.com/path>
+
+
+* https://example.com
+* [https://example.com](https://example.com)
+* <https://example.com>
+* https://example.com/path
+* [https://example.com/path](https://example.com/path)
+* <https://example.com/path>
+`;
+      const { value } = await processor().process(input);
+      const expected = `## test
+
+* list
+  * https://example.com
+  * <https://example.com>
+  * <https://example.com>
+  * https://example.com/path
+  * <https://example.com/path>
+  * <https://example.com/path>
+
+* https://example.com
+
+* <https://example.com>
+
+* <https://example.com>
+
+* https://example.com/path
+
+* <https://example.com/path>
+
+* <https://example.com/path>
+`;
+      expect(value.toString()).toBe(expected);
+    });
+
+    test("Does not convert if link text is a URL but different from the link URL", async () => {
+      const input = `## test
+
+[https://example.com](https://example.org)
+`;
+
+      const { value } = await processor.process(input);
+      const expected = `## test
+
+[https://example.com](https://example.org)
+`;
+
+      expect(removeLineLeadingSpaces(value.toString())).toBe(
+        removeLineLeadingSpaces(expected),
+      );
+    });
+
     test("Does not show a favicon if the favicon request fails", async () => {
       server.use(
         http.head("https://www.google.com/s2/favicons", () => {
@@ -147,7 +309,7 @@ describe("remark-link-card-plus", () => {
         result: {
           ogTitle: "Test Site Title",
           ogDescription: "Test Description",
-          ogImage: { url: "example.com" },
+          ogImage: [{ url: "example.com" }],
         },
       });
 

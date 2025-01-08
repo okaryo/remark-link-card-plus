@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import { access, mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
-import type { Html, Root, Text } from "mdast";
+import type { Html, Link, Root, Text } from "mdast";
 import client from "open-graph-scraper";
 import type { ErrorResult } from "open-graph-scraper/types/lib/types";
 import sanitizeHtml from "sanitize-html";
@@ -35,12 +35,25 @@ const defaultOptions: Options = {
 const remarkLinkCard: Plugin<[Options], Root> =
   (userOptions: Options) => async (tree) => {
     const options = { ...defaultOptions, ...userOptions };
-
     const transformers: (() => Promise<void>)[] = [];
-    visit(tree, "paragraph", (paragraphNode, index) => {
-      if (paragraphNode.children.length !== 1) return;
 
-      visit(paragraphNode, "link", (linkNode) => {
+    const addTransformer = (url: string, index: number) => {
+      transformers.push(async () => {
+        const data = await getLinkCardData(new URL(url), options);
+        const linkCardNode = createLinkCardNode(data, options);
+        if (index !== undefined) {
+          tree.children.splice(index, 1, linkCardNode);
+        }
+      });
+    };
+
+    visit(tree, "paragraph", (paragraph, index, parent) => {
+      if (parent?.type !== "root" || paragraph.children.length !== 1) return;
+
+      let unmatchedLink: Link;
+      let processedUrl: string;
+
+      visit(paragraph, "link", (linkNode) => {
         const hasOneChildText =
           linkNode.children.length === 1 &&
           linkNode.children[0].type === "text";
@@ -48,19 +61,32 @@ const remarkLinkCard: Plugin<[Options], Root> =
 
         const childText = linkNode.children[0] as Text;
         if (!isSameUrlValue(linkNode.url, childText.value)) {
+          unmatchedLink = linkNode;
           return;
         }
 
-        const url = new URL(linkNode.url);
+        if (index !== undefined) {
+          processedUrl = linkNode.url;
+          addTransformer(linkNode.url, index);
+        }
+      });
 
-        transformers.push(async () => {
-          const data = await getLinkCardData(url, options);
-          const linkCardNode = createLinkCardNode(data, options);
+      visit(paragraph, "text", (textNode) => {
+        if (!URL.canParse(textNode.value)) return;
+        if (processedUrl === textNode.value) return;
 
-          if (index) {
-            tree.children.splice(index, 1, linkCardNode);
-          }
-        });
+        // NOTE: Skip card conversion if the link text and URL are different, e.g., [https://example.com](https://example.org)
+        if (
+          unmatchedLink &&
+          textNode.value === (unmatchedLink.children[0] as Text).value &&
+          textNode.position?.start.line === unmatchedLink.position?.start.line
+        ) {
+          return;
+        }
+
+        if (index !== undefined) {
+          addTransformer(textNode.value, index);
+        }
       });
     });
 
@@ -132,14 +158,11 @@ const getLinkCardData = async (url: URL, options: Options) => {
   }
 
   let ogImageUrl =
-    ogResult?.ogImage && ogResult.ogImage.length > 0
+    ogResult?.ogImage &&
+    ogResult.ogImage.length > 0 &&
+    URL.canParse(ogResult?.ogImage[0].url)
       ? ogResult?.ogImage?.[0].url
       : "";
-  try {
-    new URL(ogImageUrl).toString();
-  } catch (_) {
-    ogImageUrl = "";
-  }
 
   if (ogImageUrl) {
     if (options.cache) {
