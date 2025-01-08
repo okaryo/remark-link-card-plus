@@ -33,7 +33,7 @@ npm i remark-link-card-plus
 
 ### Basic Example
 
-```javascript
+```js
 import { remark } from "remark";
 import remarkLinkCard from "remark-link-card-plus";
 
@@ -58,6 +58,38 @@ Inline links like [GitHub](https://github.com) will **not** be converted.
 
   console.log(result.value);
 })();
+```
+
+You can get converted result like this.
+
+```md
+# Example Markdown
+
+## Link Card Demo
+
+Bare links like this:
+
+<div class="remark-link-card-plus__container">
+  <a href="https://github.com/" target="_blank" rel="noreferrer noopener" class="remark-link-card-plus__card">
+    <div class="remark-link-card-plus__main">
+      <div class="remark-link-card-plus__content">
+        <div class="remark-link-card-plus__title">GitHub · Build and ship software on a single, collaborative platform</div>
+        <div class="remark-link-card-plus__description">Join the world's most widely adopted, AI-powered developer platform where millions of developers, businesses, and the largest open source community build software that advances humanity.</div>
+      </div>
+      <div class="remark-link-card-plus__meta">
+        <img src="https://www.google.com/s2/favicons?domain=github.com" class="remark-link-card-plus__favicon" width="14" height="14" alt="favicon">
+        <span class="remark-link-card-plus__url">github.com</span>
+      </div>
+    </div>
+    <div class="remark-link-card-plus__thumbnail">
+      <img src="https://github.githubassets.com/assets/home24-5939032587c9.jpg" class="remark-link-card-plus__image" alt="ogImage">
+    </div>
+  </a>
+</div>
+
+will be converted into a link card.
+
+Inline links like [GitHub](https://github.com) will **not** be converted.
 ```
 
 ### Astro Example
