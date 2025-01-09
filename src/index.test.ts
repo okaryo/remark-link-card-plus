@@ -377,6 +377,19 @@ https://example.com/path
         removeLineLeadingSpaces(expected),
       );
     });
+
+    test("Does not convert invalid URLs like 'Example:' into cards (URLs that pass `URL.canParse` but are not valid links)", async () => {
+      const input = `## test
+
+Example:
+`;
+      const { value } = await processor.process(input);
+      const expected = `## test
+
+Example:
+`;
+      expect(value.toString()).toBe(expected);
+    });
   });
 
   describe("Options", () => {
