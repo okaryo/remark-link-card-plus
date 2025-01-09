@@ -47,6 +47,15 @@ const remarkLinkCard: Plugin<[Options], Root> =
       });
     };
 
+    const isValidUrl = (value: string): boolean => {
+      if (!URL.canParse(value)) return false;
+
+      const basicUrlPattern = /^(https?:\/\/[^\s/$.?#].[^\s]*)$/i;
+      if (!basicUrlPattern.test(value)) return false;
+
+      return true;
+    };
+
     visit(tree, "paragraph", (paragraph, index, parent) => {
       if (parent?.type !== "root" || paragraph.children.length !== 1) return;
 
@@ -72,7 +81,7 @@ const remarkLinkCard: Plugin<[Options], Root> =
       });
 
       visit(paragraph, "text", (textNode) => {
-        if (!URL.canParse(textNode.value)) return;
+        if (!isValidUrl(textNode.value)) return;
         if (processedUrl === textNode.value) return;
 
         // NOTE: Skip card conversion if the link text and URL are different, e.g., [https://example.com](https://example.org)
