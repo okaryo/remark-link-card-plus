@@ -44,7 +44,7 @@
     "msw": "^2.7.0",
     "remark": "^15.0.1",
     "typescript": "^5.7.2",
-    "vitest": "^2.1.8"
+    "vitest": "^3.0.4"
   },
   "dependencies": {
     "open-graph-scraper": "^6.8.3",
