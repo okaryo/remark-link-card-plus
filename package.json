@@ -1,6 +1,6 @@
 {
   "name": "remark-link-card-plus",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Remark plugin to convert text links to link cards",
   "main": "./build/index.js",
   "types": "./build/index.d.ts",
