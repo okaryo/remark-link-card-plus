@@ -9,9 +9,9 @@
     "astro": "astro"
   },
   "dependencies": {
-    "@astrojs/tailwind": "^5.1.4",
-    "@tailwindcss/typography": "^0.5.15",
-    "astro": "^5.1.2",
+    "@astrojs/tailwind": "^5.1.5",
+    "@tailwindcss/typography": "^0.5.16",
+    "astro": "^5.1.9",
     "remark-link-card-plus": "file:../",
     "tailwindcss": "^3.4.17"
   }
