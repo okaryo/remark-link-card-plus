@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
-import { access, mkdir, writeFile } from "node:fs/promises";
+import { access, mkdir, readdir, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { fileTypeFromBuffer } from "file-type";
 import type { Html, Link, Root, Text } from "mdast";
 import client from "open-graph-scraper";
 import type { ErrorResult } from "open-graph-scraper/types/lib/types";
@@ -206,19 +207,14 @@ const getLinkCardData = async (url: URL, options: Options) => {
 
 const downloadImage = async (url: URL, saveDirectory: string) => {
   const hash = createHash("sha256").update(decodeURI(url.href)).digest("hex");
-  const filename = hash + path.extname(url.pathname);
-  const saveFilePath = path.join(saveDirectory, filename);
 
   try {
-    await access(saveFilePath);
-    return filename;
+    const files = await readdir(saveDirectory);
+    const cachedFile = files.find((file) => file.startsWith(`${hash}.`));
+    if (cachedFile) {
+      return cachedFile;
+    }
   } catch (_) {}
-
-  try {
-    await access(saveDirectory);
-  } catch (_) {
-    await mkdir(saveDirectory, { recursive: true });
-  }
 
   try {
     const response = await fetch(url.href, {
@@ -226,15 +222,27 @@ const downloadImage = async (url: URL, saveDirectory: string) => {
     });
     const arrayBuffer = await response.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
-    writeFile(saveFilePath, buffer);
+
+    const fileType = await fileTypeFromBuffer(buffer);
+    const extension = fileType ? `.${fileType.ext}` : ".png";
+
+    const filename = `${hash}${extension}`;
+    const saveFilePath = path.join(saveDirectory, filename);
+
+    try {
+      await access(saveDirectory);
+    } catch (_) {
+      await mkdir(saveDirectory, { recursive: true });
+    }
+
+    await writeFile(saveFilePath, buffer);
+    return filename;
   } catch (error) {
     console.error(
       `[remark-link-card-plus] Error: Failed to download image from ${url.href}\n ${error}`,
     );
     return undefined;
   }
-
-  return filename;
 };
 
 const className = (value: string) => {
