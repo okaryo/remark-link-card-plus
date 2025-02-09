@@ -1,3 +1,5 @@
+import fs from "node:fs/promises";
+import path from "node:path";
 import { http } from "msw";
 import { setupServer } from "msw/node";
 import client from "open-graph-scraper";
@@ -22,6 +24,14 @@ vi.mock("open-graph-scraper", () => {
         ogDescription: "Test Description",
         ogImage: [{ url: "http://example.com" }],
       },
+    }),
+  };
+});
+
+vi.mock("file-type", () => {
+  return {
+    fileTypeFromBuffer: vi.fn().mockResolvedValue({
+      ext: "png",
     }),
   };
 });
@@ -415,6 +425,35 @@ Example:
         });
         const { value } = await processorWithCache.process(input);
         expect(value.toString()).toContain(`src="/remark-link-card-plus/`);
+      });
+
+      test("Caches image with appropriate extension when URL has no extension", async () => {
+        // biome-ignore lint/suspicious/noExplicitAny: for open-graph-scraper mock
+        const mockedClient = vi.mocked(client as any);
+        mockedClient.mockResolvedValueOnce({
+          error: false,
+          result: {
+            ogTitle: "Cached Title",
+            ogDescription: "Cached Description",
+            ogImage: { url: "http://example.com/no-extension-image" },
+          },
+        });
+        const saveDirectory = path.join(process.cwd(), "public/cache");
+        await fs.mkdir(saveDirectory, { recursive: true });
+
+        const processorWithCache = remark().use(remarkLinkCard, {
+          cache: true,
+        });
+        const input = `## test
+
+[https://example.com](https://example.com)
+`;
+        const { value } = await processorWithCache.process(input);
+
+        expect(value.toString()).toContain(`src="/remark-link-card-plus/`);
+        expect(value.toString()).toMatch(
+          /src="\/remark-link-card-plus\/.*\.png"/,
+        );
       });
     });
 
