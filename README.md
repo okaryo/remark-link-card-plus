@@ -16,6 +16,7 @@ You can see it in action on the [demo page](https://remark-link-card-plus.pages.
 * **Target blank**: Links in link cards now open in a new tab using `target="_blank"`.
 * **No link cards in lists**: Links inside list items (`listItem`) are not converted into link cards.
 * **Thumbnail position customization**: Select whether the thumbnail is displayed on the left or right of the card.
+* **Optional image and favicon display**: Added `noThumbnail` and `noFavicon` options to hide thumbnails and favicons from link cards.
 
 ### Retained features:
 * **Options support**:
@@ -99,13 +100,9 @@ You can also use `remark-link-card-plus` in an [Astro](https://astro.build) proj
 ```javascript
 // astro.config.mjs
 import { defineConfig } from 'astro/config';
-import tailwind from '@astrojs/tailwind';
 import remarkLinkCard from 'remark-link-card-plus';
 
 export default defineConfig({
-  integrations: [
-    tailwind(),
-  ],
   markdown: {
     remarkPlugins: [
       [
@@ -113,9 +110,18 @@ export default defineConfig({
           cache: true,
           shortenUrl: true,
           thumbnailPosition: "right",
+          noThumbnail: false,
+          noFavicon: false,
         },
       ],
     ],
+  },
+});
+
+// Here is minimal setup.
+export default defineConfig({
+  markdown: {
+    remarkPlugins: [remarkLinkCard],
   },
 });
 ```
@@ -124,9 +130,11 @@ export default defineConfig({
 
 | Option       | Type    | Default | Description                                                                 |
 |--------------|---------|---------|-----------------------------------------------------------------------------|
-| `cache`      | boolean | `false` | Caches Open Graph images and favicons locally. Images are saved to `process.cwd()/public/remark-link-card-plus/` and paths start with `/remark-link-card-plus/`. This reduces server load on the linked site. |
+| `cache`      | boolean | `false` | Caches Open Graph images and favicons locally. Images are saved to `process.cwd()/public/remark-link-card-plus/` and paths start with `/remark-link-card-plus/`. This reduces server load on the linked site and improves build performance by avoiding redundant network requests. |
 | `shortenUrl` | boolean | `true`  | Displays only the hostname of the URL in the link card instead of the full URL. |
 | `thumbnailPosition` | string | `right`  | Specifies the position of the thumbnail in the card. Accepts `"left"` or `"right"`. |
+| `noThumbnail` | boolean | `false` | If `true`, does not display the Open Graph thumbnail image. The generated link card HTML will not contain an `<img>` tag for the thumbnail. |
+| `noFavicon`   | boolean | `false` | If `true`, does not display the favicon in the link card. The generated link card HTML will not contain an `<img>` tag for the favicon. |
 
 ## Styling
 
