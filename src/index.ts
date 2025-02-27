@@ -4,7 +4,7 @@ import path from "node:path";
 import { fileTypeFromBuffer } from "file-type";
 import type { Html, Link, Root, Text } from "mdast";
 import client from "open-graph-scraper";
-import type { ErrorResult } from "open-graph-scraper/types/lib/types";
+import type { ErrorResult, OgObject } from "open-graph-scraper/types/lib/types";
 import sanitizeHtml from "sanitize-html";
 import type { Plugin } from "unified";
 import { visit } from "unist-util-visit";
@@ -16,6 +16,8 @@ type Options = {
   cache?: boolean;
   shortenUrl?: boolean;
   thumbnailPosition?: "right" | "left";
+  noThumbnail?: boolean;
+  noFavicon?: boolean;
 };
 
 type LinkCardData = {
@@ -31,6 +33,8 @@ const defaultOptions: Options = {
   cache: false,
   shortenUrl: true,
   thumbnailPosition: "right",
+  noThumbnail: false,
+  noFavicon: false,
 };
 
 const remarkLinkCard: Plugin<[Options], Root> =
@@ -150,41 +154,8 @@ const getLinkCardData = async (url: URL, options: Options) => {
   const title = ogResult?.ogTitle || url.hostname;
   const description = ogResult?.ogDescription || "";
 
-  let faviconUrl = await getFaviconImageSrc(url);
-  if (options.cache) {
-    try {
-      const faviconFilename = await downloadImage(
-        new URL(faviconUrl),
-        path.join(process.cwd(), defaultSaveDirectory, defaultOutputDirectory),
-      );
-      faviconUrl = faviconFilename
-        ? path.join(defaultOutputDirectory, faviconFilename)
-        : faviconUrl;
-    } catch (error) {
-      console.error(
-        `[remark-link-card-plus] Error: Failed to download favicon from ${faviconUrl}\n ${error}`,
-      );
-    }
-  }
-
-  let ogImageUrl =
-    ogResult?.ogImage &&
-    ogResult.ogImage.length > 0 &&
-    URL.canParse(ogResult?.ogImage[0].url)
-      ? ogResult?.ogImage?.[0].url
-      : "";
-
-  if (ogImageUrl) {
-    if (options.cache) {
-      const imageFilename = await downloadImage(
-        new URL(ogImageUrl),
-        path.join(process.cwd(), defaultSaveDirectory, defaultOutputDirectory),
-      );
-      ogImageUrl = imageFilename
-        ? path.join(defaultOutputDirectory, imageFilename)
-        : ogImageUrl;
-    }
-  }
+  const faviconUrl = await getFaviconUrl(url, options);
+  const ogImageUrl = await getOgImageUrl(ogResult, options);
 
   let displayUrl = options.shortenUrl ? url.hostname : url.toString();
   try {
@@ -203,6 +174,56 @@ const getLinkCardData = async (url: URL, options: Options) => {
     displayUrl,
     url,
   };
+};
+
+const getFaviconUrl = async (url: URL, options: Options) => {
+  if (options.noFavicon) return "";
+
+  let faviconUrl = await getFaviconImageSrc(url);
+  if (faviconUrl && options.cache) {
+    try {
+      const faviconFilename = await downloadImage(
+        new URL(faviconUrl),
+        path.join(process.cwd(), defaultSaveDirectory, defaultOutputDirectory),
+      );
+      faviconUrl = faviconFilename
+        ? path.join(defaultOutputDirectory, faviconFilename)
+        : faviconUrl;
+    } catch (error) {
+      console.error(
+        `[remark-link-card-plus] Error: Failed to download favicon from ${faviconUrl}\n ${error}`,
+      );
+    }
+  }
+
+  return faviconUrl;
+};
+
+const getOgImageUrl = async (
+  ogResult: OgObject | undefined,
+  options: Options,
+) => {
+  if (options.noThumbnail) return "";
+
+  const isValidUrl =
+    ogResult?.ogImage &&
+    ogResult.ogImage.length > 0 &&
+    URL.canParse(ogResult.ogImage[0].url);
+  if (!isValidUrl) return "";
+
+  let ogImageUrl = ogResult?.ogImage?.[0].url;
+
+  if (ogImageUrl && options.cache) {
+    const imageFilename = await downloadImage(
+      new URL(ogImageUrl),
+      path.join(process.cwd(), defaultSaveDirectory, defaultOutputDirectory),
+    );
+    ogImageUrl = imageFilename
+      ? path.join(defaultOutputDirectory, imageFilename)
+      : ogImageUrl;
+  }
+
+  return ogImageUrl;
 };
 
 const downloadImage = async (url: URL, saveDirectory: string) => {
