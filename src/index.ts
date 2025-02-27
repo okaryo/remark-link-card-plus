@@ -180,7 +180,7 @@ const getFaviconUrl = async (url: URL, options: Options) => {
   if (options.noFavicon) return "";
 
   let faviconUrl = await getFaviconImageSrc(url);
-  if (options.cache) {
+  if (faviconUrl && options.cache) {
     try {
       const faviconFilename = await downloadImage(
         new URL(faviconUrl),
@@ -205,23 +205,22 @@ const getOgImageUrl = async (
 ) => {
   if (options.noThumbnail) return "";
 
-  let ogImageUrl =
+  const isValidUrl =
     ogResult?.ogImage &&
     ogResult.ogImage.length > 0 &&
-    URL.canParse(ogResult?.ogImage[0].url)
-      ? ogResult?.ogImage?.[0].url
-      : "";
+    URL.canParse(ogResult.ogImage[0].url);
+  if (!isValidUrl) return "";
 
-  if (ogImageUrl) {
-    if (options.cache) {
-      const imageFilename = await downloadImage(
-        new URL(ogImageUrl),
-        path.join(process.cwd(), defaultSaveDirectory, defaultOutputDirectory),
-      );
-      ogImageUrl = imageFilename
-        ? path.join(defaultOutputDirectory, imageFilename)
-        : ogImageUrl;
-    }
+  let ogImageUrl = ogResult?.ogImage?.[0].url;
+
+  if (ogImageUrl && options.cache) {
+    const imageFilename = await downloadImage(
+      new URL(ogImageUrl),
+      path.join(process.cwd(), defaultSaveDirectory, defaultOutputDirectory),
+    );
+    ogImageUrl = imageFilename
+      ? path.join(defaultOutputDirectory, imageFilename)
+      : ogImageUrl;
   }
 
   return ogImageUrl;
