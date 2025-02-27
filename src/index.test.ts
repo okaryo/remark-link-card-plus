@@ -6,6 +6,7 @@ import client from "open-graph-scraper";
 import { remark } from "remark";
 import {
   afterAll,
+  afterEach,
   beforeAll,
   beforeEach,
   describe,
@@ -526,6 +527,83 @@ Example:
         });
         const { value } = await processorWithoutThumbnail.process(input);
         expect(value.toString()).not.toContain(`alt="ogImage"`);
+      });
+    });
+
+    describe("noThumbnail", () => {
+      const markdown = `
+https://example.com
+`;
+
+      test("default behavior (noThumbnail: false) includes image", async () => {
+        const result = await remark()
+          .use(remarkLinkCard, { noThumbnail: false })
+          .process(markdown);
+
+        expect(result.value).toContain(
+          '<img src="http://example.com" class="remark-link-card-plus__image" alt="ogImage">',
+        );
+        expect(result.value).toContain('class="remark-link-card-plus__image"');
+      });
+
+      test("noImage: true removes image", async () => {
+        const result = await remark()
+          .use(remarkLinkCard, { noThumbnail: true })
+          .process(markdown);
+
+        expect(result.value).not.toContain(
+          '<img src="http://example.com" class="remark-link-card-plus__image" alt="ogImage">',
+        );
+        expect(result.value).not.toContain(
+          'class="remark-link-card-plus__image"',
+        );
+      });
+    });
+
+    describe("noFavicon", () => {
+      const markdown = `
+https://example.com
+`;
+
+      beforeEach(() => {
+        vi.spyOn(global, "fetch").mockResolvedValue(
+          new Response(JSON.stringify({}), { status: 200 }),
+        );
+      });
+
+      afterEach(() => {
+        vi.restoreAllMocks();
+      });
+
+      test("default behavior (noFavicon: false) includes favicon", async () => {
+        const result = await remark()
+          .use(remarkLinkCard, { noFavicon: false })
+          .process(markdown);
+
+        expect(result.value).toContain(
+          '<img src="https://www.google.com/s2/favicons?domain=example.com" class="remark-link-card-plus__favicon" width="14" height="14" alt="favicon">',
+        );
+        expect(result.value).toContain(
+          'class="remark-link-card-plus__favicon"',
+        );
+        expect(global.fetch).toHaveBeenCalledWith(
+          expect.stringContaining("https://www.google.com/s2/favicons"),
+          expect.anything(),
+        );
+      });
+
+      test("noFavicon: true removes favicon", async () => {
+        const result = await remark()
+          .use(remarkLinkCard, { noFavicon: true })
+          .process(markdown);
+
+        expect(result.value).not.toContain(
+          '<img src="https://www.google.com/s2/favicons?domain=example.com" class="remark-link-card-plus__favicon" width="14" height="14" alt="favicon">',
+        );
+        expect(result.value).not.toContain(
+          'class="remark-link-card-plus__favicon"',
+        );
+        expect(global.fetch).not.toHaveBeenCalled();
       });
     });
   });

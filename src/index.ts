@@ -4,7 +4,7 @@ import path from "node:path";
 import { fileTypeFromBuffer } from "file-type";
 import type { Html, Link, Root, Text } from "mdast";
 import client from "open-graph-scraper";
-import type { ErrorResult } from "open-graph-scraper/types/lib/types";
+import type { ErrorResult, OgObject } from "open-graph-scraper/types/lib/types";
 import sanitizeHtml from "sanitize-html";
 import type { Plugin } from "unified";
 import { visit } from "unist-util-visit";
@@ -16,6 +16,8 @@ type Options = {
   cache?: boolean;
   shortenUrl?: boolean;
   thumbnailPosition?: "right" | "left";
+  noThumbnail?: boolean;
+  noFavicon?: boolean;
 };
 
 type LinkCardData = {
@@ -31,6 +33,8 @@ const defaultOptions: Options = {
   cache: false,
   shortenUrl: true,
   thumbnailPosition: "right",
+  noThumbnail: false,
+  noFavicon: false,
 };
 
 const remarkLinkCard: Plugin<[Options], Root> =
@@ -150,6 +154,31 @@ const getLinkCardData = async (url: URL, options: Options) => {
   const title = ogResult?.ogTitle || url.hostname;
   const description = ogResult?.ogDescription || "";
 
+  const faviconUrl = await getFaviconUrl(url, options);
+  const ogImageUrl = await getOgImageUrl(ogResult, options);
+
+  let displayUrl = options.shortenUrl ? url.hostname : url.toString();
+  try {
+    displayUrl = decodeURI(displayUrl);
+  } catch (error) {
+    console.error(
+      `[remark-link-card-plus] Error: Cannot decode url: "${url}"\n ${error}`,
+    );
+  }
+
+  return {
+    title,
+    description,
+    faviconUrl,
+    ogImageUrl,
+    displayUrl,
+    url,
+  };
+};
+
+const getFaviconUrl = async (url: URL, options: Options) => {
+  if (options.noFavicon) return "";
+
   let faviconUrl = await getFaviconImageSrc(url);
   if (options.cache) {
     try {
@@ -166,6 +195,15 @@ const getLinkCardData = async (url: URL, options: Options) => {
       );
     }
   }
+
+  return faviconUrl;
+};
+
+const getOgImageUrl = async (
+  ogResult: OgObject | undefined,
+  options: Options,
+) => {
+  if (options.noThumbnail) return "";
 
   let ogImageUrl =
     ogResult?.ogImage &&
@@ -186,23 +224,7 @@ const getLinkCardData = async (url: URL, options: Options) => {
     }
   }
 
-  let displayUrl = options.shortenUrl ? url.hostname : url.toString();
-  try {
-    displayUrl = decodeURI(displayUrl);
-  } catch (error) {
-    console.error(
-      `[remark-link-card-plus] Error: Cannot decode url: "${url}"\n ${error}`,
-    );
-  }
-
-  return {
-    title,
-    description,
-    faviconUrl,
-    ogImageUrl,
-    displayUrl,
-    url,
-  };
+  return ogImageUrl;
 };
 
 const downloadImage = async (url: URL, saveDirectory: string) => {
