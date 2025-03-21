@@ -43,7 +43,7 @@
     "@types/sanitize-html": "^2.13.0",
     "msw": "^2.7.3",
     "remark": "^15.0.1",
-    "typescript": "^5.7.3",
+    "typescript": "^5.8.2",
     "vitest": "^3.0.9"
   },
   "dependencies": {
