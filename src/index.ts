@@ -154,7 +154,7 @@ const getLinkCardData = async (url: URL, options: Options) => {
   const title = ogResult?.ogTitle || url.hostname;
   const description = ogResult?.ogDescription || "";
 
-  const faviconUrl = await getFaviconUrl(url, options);
+  const faviconUrl = await getFaviconUrl(url, ogResult?.favicon, options);
   const ogImageUrl = await getOgImageUrl(ogResult, options);
 
   let displayUrl = options.shortenUrl ? url.hostname : url.toString();
@@ -176,10 +176,14 @@ const getLinkCardData = async (url: URL, options: Options) => {
   };
 };
 
-const getFaviconUrl = async (url: URL, options: Options) => {
+const getFaviconUrl = async (
+  url: URL,
+  ogFavicon: string | undefined,
+  options: Options,
+) => {
   if (options.noFavicon) return "";
 
-  let faviconUrl = await getFaviconImageSrc(url);
+  let faviconUrl = ogFavicon ?? (await getFaviconImageSrc(url));
   if (faviconUrl && options.cache) {
     try {
       const faviconFilename = await downloadImage(
