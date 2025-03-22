@@ -12,12 +12,20 @@ import { visit } from "unist-util-visit";
 const defaultSaveDirectory = "public";
 const defaultOutputDirectory = "/remark-link-card-plus/";
 
+export type OgData = {
+  title: string;
+  description: string;
+  faviconUrl?: string;
+  imageUrl?: string;
+};
+
 type Options = {
   cache?: boolean;
   shortenUrl?: boolean;
   thumbnailPosition?: "right" | "left";
   noThumbnail?: boolean;
   noFavicon?: boolean;
+  ogTransformer?: (og: OgData) => OgData;
 };
 
 type LinkCardData = {
@@ -129,9 +137,9 @@ const getOpenGraph = async (targetUrl: URL) => {
     });
     return result;
   } catch (error) {
-    const ogError = error as ErrorResult;
+    const ogError = error as ErrorResult | undefined;
     console.error(
-      `[remark-link-card-plus] Error: Failed to get the Open Graph data of ${ogError.result.requestUrl} due to ${ogError.result.error}.`,
+      `[remark-link-card-plus] Error: Failed to get the Open Graph data of ${ogError?.result?.requestUrl} due to ${ogError?.result?.error}.`,
     );
     return undefined;
   }
@@ -150,12 +158,22 @@ const getFaviconImageSrc = async (url: URL) => {
 };
 
 const getLinkCardData = async (url: URL, options: Options) => {
-  const ogResult = await getOpenGraph(url);
-  const title = ogResult?.ogTitle || url.hostname;
-  const description = ogResult?.ogDescription || "";
+  const ogRawResult = await getOpenGraph(url);
+  let ogData: OgData = {
+    title: ogRawResult?.ogTitle || "",
+    description: ogRawResult?.ogDescription || "",
+    faviconUrl: ogRawResult?.favicon,
+    imageUrl: extractOgImageUrl(ogRawResult),
+  };
 
-  const faviconUrl = await getFaviconUrl(url, ogResult?.favicon, options);
-  const ogImageUrl = await getOgImageUrl(ogResult, options);
+  if (options.ogTransformer) {
+    ogData = options.ogTransformer(ogData);
+  }
+
+  const title = ogData?.title || url.hostname;
+  const description = ogData?.description || "";
+  const faviconUrl = await getFaviconUrl(url, ogData?.faviconUrl, options);
+  const ogImageUrl = await getOgImageUrl(ogData.imageUrl, options);
 
   let displayUrl = options.shortenUrl ? url.hostname : url.toString();
   try {
@@ -204,18 +222,15 @@ const getFaviconUrl = async (
 };
 
 const getOgImageUrl = async (
-  ogResult: OgObject | undefined,
+  imageUrl: string | undefined,
   options: Options,
 ) => {
   if (options.noThumbnail) return "";
 
-  const isValidUrl =
-    ogResult?.ogImage &&
-    ogResult.ogImage.length > 0 &&
-    URL.canParse(ogResult.ogImage[0].url);
+  const isValidUrl = imageUrl && imageUrl.length > 0 && URL.canParse(imageUrl);
   if (!isValidUrl) return "";
 
-  let ogImageUrl = ogResult?.ogImage?.[0].url;
+  let ogImageUrl = imageUrl;
 
   if (ogImageUrl && options.cache) {
     const imageFilename = await downloadImage(
@@ -228,6 +243,12 @@ const getOgImageUrl = async (
   }
 
   return ogImageUrl;
+};
+
+const extractOgImageUrl = (ogResult: OgObject | undefined) => {
+  return ogResult?.ogImage && ogResult.ogImage.length > 0
+    ? ogResult.ogImage[0].url
+    : undefined;
 };
 
 const downloadImage = async (url: URL, saveDirectory: string) => {
