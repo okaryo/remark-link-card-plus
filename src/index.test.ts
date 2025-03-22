@@ -572,7 +572,7 @@ https://example.com
       });
 
       afterEach(() => {
-        vi.restoreAllMocks();
+        vi.clearAllMocks();
       });
 
       test("default behavior (noFavicon: false) includes favicon", async () => {
@@ -604,6 +604,48 @@ https://example.com
           'class="remark-link-card-plus__favicon"',
         );
         expect(global.fetch).not.toHaveBeenCalled();
+      });
+    });
+
+    describe("ogTransformer", () => {
+      test("should allow modifying OG data via ogTransformer", async () => {
+        const markdown = `
+https://example.com
+`;
+
+        const { value } = await remark()
+          .use(remarkLinkCard, {
+            ogTransformer: (og) => ({
+              ...og,
+              title: "Custom Title",
+              description: "Overwritten Description",
+              faviconUrl: "https://custom.com/favicon.ico",
+              imageUrl: "https://custom.com/image.png",
+            }),
+          })
+          .process(markdown);
+
+        expect(value).toContain("Custom Title");
+        expect(value).toContain("Overwritten Description");
+        expect(value).toContain("https://custom.com/favicon.ico");
+        expect(value).toContain("https://custom.com/image.png");
+      });
+
+      test("should fall back to original OG data if ogTransformer is not provided", async () => {
+        const markdown = `
+https://github.com
+`;
+
+        const { value } = await remark()
+          .use(remarkLinkCard, {})
+          .process(markdown);
+
+        expect(value).toContain("Test Site Title");
+        expect(value).toContain("Test Description");
+        expect(value).toContain(
+          "https://www.google.com/s2/favicons?domain=github.com",
+        );
+        expect(value).toContain("http://example.com");
       });
     });
   });
