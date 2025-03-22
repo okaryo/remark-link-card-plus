@@ -17,6 +17,7 @@ You can see it in action on the [demo page](https://remark-link-card-plus.pages.
 * **No link cards in lists**: Links inside list items (`listItem`) are not converted into link cards.
 * **Thumbnail position customization**: Select whether the thumbnail is displayed on the left or right of the card.
 * **Optional image and favicon display**: Added `noThumbnail` and `noFavicon` options to hide thumbnails and favicons from link cards.
+* **OG data transformer**: The `ogTransformer` option allows customization of Open Graph data such as the title, description, favicon, and image before rendering the link card.
 
 ### Retained features:
 * **Options support**:
@@ -112,6 +113,12 @@ export default defineConfig({
           thumbnailPosition: "right",
           noThumbnail: false,
           noFavicon: false,
+          ogTransformer: (og) => {
+            if (og.title === og.description) {
+              return { ...og, description: 'custom description' };
+            }
+            return og;
+          }
         },
       ],
     ],
@@ -135,6 +142,7 @@ export default defineConfig({
 | `thumbnailPosition` | string | `right`  | Specifies the position of the thumbnail in the card. Accepts `"left"` or `"right"`. |
 | `noThumbnail` | boolean | `false` | If `true`, does not display the Open Graph thumbnail image. The generated link card HTML will not contain an `<img>` tag for the thumbnail. |
 | `noFavicon`   | boolean | `false` | If `true`, does not display the favicon in the link card. The generated link card HTML will not contain an `<img>` tag for the favicon. |
+| `ogTransformer` | `(og: OgData) => OgData` | `undefined` | A callback to transform the Open Graph data before rendering. `OgData` has the structure `{ title: string; description: string; faviconUrl?: string; imageUrl?: string }`. |
 
 ## Styling
 
