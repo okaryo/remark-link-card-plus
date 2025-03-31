@@ -201,7 +201,22 @@ const getFaviconUrl = async (
 ) => {
   if (options.noFavicon) return "";
 
-  let faviconUrl = ogFavicon ?? (await getFaviconImageSrc(url));
+  let faviconUrl = ogFavicon;
+  if (faviconUrl && !URL.canParse(faviconUrl)) {
+    try {
+      faviconUrl = new URL(faviconUrl, url.origin).toString();
+    } catch (error) {
+      console.error(
+        `[remark-link-card-plus] Error: Failed to resolve favicon URL ${faviconUrl} relative to ${url}\n${error}`,
+      );
+      faviconUrl = undefined;
+    }
+  }
+
+  if (!faviconUrl) {
+    faviconUrl = await getFaviconImageSrc(url);
+  }
+
   if (faviconUrl && options.cache) {
     try {
       const faviconFilename = await downloadImage(
