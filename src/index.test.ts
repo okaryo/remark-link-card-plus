@@ -647,6 +647,31 @@ https://github.com
         );
         expect(value).toContain("http://example.com");
       });
+
+      test("resolves relative favicon URLs into absolute ones", async () => {
+        // biome-ignore lint/suspicious/noExplicitAny: for open-graph-scraper mock
+        const mockedClient = vi.mocked(client as any);
+        mockedClient.mockResolvedValueOnce({
+          error: false,
+          result: {
+            ogTitle: "Relative Favicon",
+            ogDescription: "Favicon should be resolved",
+            favicon: "/relative-path-favicon.ico",
+          },
+        });
+
+        const markdown = `
+https://example.com
+`;
+
+        const { value } = await remark()
+          .use(remarkLinkCard, {})
+          .process(markdown);
+
+        expect(value.toString()).toContain(
+          `<img src="https://example.com/relative-path-favicon.ico" class="remark-link-card-plus__favicon"`,
+        );
+      });
     });
   });
 });
