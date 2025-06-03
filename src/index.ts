@@ -26,6 +26,7 @@ type Options = {
   noThumbnail?: boolean;
   noFavicon?: boolean;
   ogTransformer?: (og: OgData) => OgData;
+  ignoreExtensions?: string[];
 };
 
 type LinkCardData = {
@@ -43,12 +44,26 @@ const defaultOptions: Options = {
   thumbnailPosition: "right",
   noThumbnail: false,
   noFavicon: false,
+  ignoreExtensions: [],
 };
 
 const remarkLinkCard: Plugin<[Options], Root> =
   (userOptions: Options) => async (tree) => {
     const options = { ...defaultOptions, ...userOptions };
     const transformers: (() => Promise<void>)[] = [];
+
+    const shouldIgnoreUrl = (url: string): boolean => {
+      if (!options.ignoreExtensions?.length) return false;
+      try {
+        const urlObj = new URL(url);
+        const pathname = urlObj.pathname.toLowerCase();
+        return options.ignoreExtensions.some((ext) =>
+          pathname.endsWith(ext.toLowerCase()),
+        );
+      } catch (_) {
+        return false;
+      }
+    };
 
     const addTransformer = (url: string, index: number) => {
       transformers.push(async () => {
@@ -89,7 +104,9 @@ const remarkLinkCard: Plugin<[Options], Root> =
 
         if (index !== undefined) {
           processedUrl = linkNode.url;
-          addTransformer(linkNode.url, index);
+          if (!shouldIgnoreUrl(linkNode.url)) {
+            addTransformer(linkNode.url, index);
+          }
         }
       });
 
@@ -107,7 +124,9 @@ const remarkLinkCard: Plugin<[Options], Root> =
         }
 
         if (index !== undefined) {
-          addTransformer(textNode.value, index);
+          if (!shouldIgnoreUrl(textNode.value)) {
+            addTransformer(textNode.value, index);
+          }
         }
       });
     });

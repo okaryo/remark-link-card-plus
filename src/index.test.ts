@@ -673,5 +673,170 @@ https://example.com
         );
       });
     });
+
+    describe("ignoreExtensions", () => {
+      test("should skip link card transformation for URLs with ignored extensions", async () => {
+        const input = `## test
+
+https://example.com
+
+https://example.com/video.mp4
+
+https://example.com/movie.mov
+
+https://example.com/image.png
+`;
+
+        const processorIgnoreExtensions = remark().use(remarkLinkCard, {
+          ignoreExtensions: [".mp4", ".mov"],
+        });
+        const { value } = await processorIgnoreExtensions.process(input);
+
+        const expected = `## test
+
+<div class="remark-link-card-plus__container">
+  <a href="https://example.com/" target="_blank" rel="noreferrer noopener" class="remark-link-card-plus__card">
+    <div class="remark-link-card-plus__main">
+      <div class="remark-link-card-plus__content">
+        <div class="remark-link-card-plus__title">Test Site Title</div>
+        <div class="remark-link-card-plus__description">Test Description</div>
+      </div>
+      <div class="remark-link-card-plus__meta">
+        <img src="https://www.google.com/s2/favicons?domain=example.com" class="remark-link-card-plus__favicon" width="14" height="14" alt="favicon">
+        <span class="remark-link-card-plus__url">example.com</span>
+      </div>
+    </div>
+    <div class="remark-link-card-plus__thumbnail">
+      <img src="http://example.com" class="remark-link-card-plus__image" alt="ogImage">
+    </div>
+  </a>
+</div>
+
+https://example.com/video.mp4
+
+https://example.com/movie.mov
+
+<div class="remark-link-card-plus__container">
+  <a href="https://example.com/image.png" target="_blank" rel="noreferrer noopener" class="remark-link-card-plus__card">
+    <div class="remark-link-card-plus__main">
+      <div class="remark-link-card-plus__content">
+        <div class="remark-link-card-plus__title">Test Site Title</div>
+        <div class="remark-link-card-plus__description">Test Description</div>
+      </div>
+      <div class="remark-link-card-plus__meta">
+        <img src="https://www.google.com/s2/favicons?domain=example.com" class="remark-link-card-plus__favicon" width="14" height="14" alt="favicon">
+        <span class="remark-link-card-plus__url">example.com</span>
+      </div>
+    </div>
+    <div class="remark-link-card-plus__thumbnail">
+      <img src="http://example.com" class="remark-link-card-plus__image" alt="ogImage">
+    </div>
+  </a>
+</div>
+`;
+        expect(removeLineLeadingSpaces(value.toString())).toBe(
+          removeLineLeadingSpaces(expected),
+        );
+      });
+
+      test("should handle case insensitivity for file extensions", async () => {
+        const input = `## test
+
+https://example.com/video.MP4
+
+https://example.com/movie.MOV
+`;
+
+        const processorIgnoreExtensions = remark().use(remarkLinkCard, {
+          ignoreExtensions: [".mp4", ".mov"],
+        });
+        const { value } = await processorIgnoreExtensions.process(input);
+
+        const expected = `## test
+
+https://example.com/video.MP4
+
+https://example.com/movie.MOV
+`;
+
+        expect(removeLineLeadingSpaces(value.toString())).toBe(
+          removeLineLeadingSpaces(expected),
+        );
+      });
+
+      test("should handle different link formats with ignored extensions", async () => {
+        const input = `## test
+
+https://example.com/video.mp4
+
+[https://example.com/movie.mov](https://example.com/movie.mov)
+
+<https://example.com/document.pdf>
+
+[Download Video](https://example.com/other-video.mp4)
+`;
+
+        const processorIgnoreExtensions = remark().use(remarkLinkCard, {
+          ignoreExtensions: [".mp4", ".mov", ".pdf"],
+        });
+        const { value } = await processorIgnoreExtensions.process(input);
+
+        const expected = `## test
+
+https://example.com/video.mp4
+
+<https://example.com/movie.mov>
+
+<https://example.com/document.pdf>
+
+[Download Video](https://example.com/other-video.mp4)
+`;
+
+        expect(removeLineLeadingSpaces(value.toString())).toBe(
+          removeLineLeadingSpaces(expected),
+        );
+      });
+
+      test("should only ignore exact matched extensions", async () => {
+        const input = `## test
+
+https://example.com/image.png
+
+https://example.com/image.apng
+`;
+
+        const processor = remark().use(remarkLinkCard, {
+          ignoreExtensions: [".png"],
+        });
+        const { value } = await processor.process(input);
+
+        const expected = `## test
+
+https://example.com/image.png
+
+<div class="remark-link-card-plus__container">
+  <a href="https://example.com/image.apng" target="_blank" rel="noreferrer noopener" class="remark-link-card-plus__card">
+    <div class="remark-link-card-plus__main">
+      <div class="remark-link-card-plus__content">
+        <div class="remark-link-card-plus__title">Test Site Title</div>
+        <div class="remark-link-card-plus__description">Test Description</div>
+      </div>
+      <div class="remark-link-card-plus__meta">
+        <img src="https://www.google.com/s2/favicons?domain=example.com" class="remark-link-card-plus__favicon" width="14" height="14" alt="favicon">
+        <span class="remark-link-card-plus__url">example.com</span>
+      </div>
+    </div>
+    <div class="remark-link-card-plus__thumbnail">
+      <img src="http://example.com" class="remark-link-card-plus__image" alt="ogImage">
+    </div>
+  </a>
+</div>
+`;
+
+        expect(removeLineLeadingSpaces(value.toString())).toBe(
+          removeLineLeadingSpaces(expected),
+        );
+      });
+    });
   });
 });
