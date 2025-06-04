@@ -94,6 +94,22 @@ Output:
 
 ---
 
+### 3. Links Ignored by Extension
+
+If you configure `ignoreExtensions: [".mp4"]`, links to files with these extensions will not be converted to cards.
+
+Example:
+
+```markdown
+https://example.com/video.mp4
+```
+
+Output:
+
+https://example.com/video.mp4
+
+---
+
 ## ❌ Links Not Converted to Cards
 
 ### 1. Link with Additional Text on the Same Line

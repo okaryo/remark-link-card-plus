@@ -18,6 +18,7 @@ You can see it in action on the [demo page](https://remark-link-card-plus.pages.
 * **Thumbnail position customization**: Select whether the thumbnail is displayed on the left or right of the card.
 * **Optional image and favicon display**: Added `noThumbnail` and `noFavicon` options to hide thumbnails and favicons from link cards.
 * **OG data transformer**: The `ogTransformer` option allows customization of Open Graph data such as the title, description, favicon, and image before rendering the link card.
+* **Ignore by extension**: The `ignoreExtensions` option allows you to skip link card conversion for URLs with specific file extensions (e.g., `.mp4`, `.pdf`).
 
 ### Retained features:
 * **Options support**:
@@ -51,11 +52,13 @@ https://github.com
 will be converted into a link card.
 
 Inline links like [GitHub](https://github.com) will **not** be converted.
+
+Links to files like https://example.com/video.mp4 can be ignored using the `ignoreExtensions` option.
 `;
 
 (async () => {
   const result = await remark()
-    .use(remarkLinkCard, { cache: true, shortenUrl: true })
+    .use(remarkLinkCard, { cache: true, shortenUrl: true, ignoreExtensions: ['.mp4', '.pdf'] })
     .process(exampleMarkdown);
 
   console.log(result.value);
@@ -92,6 +95,8 @@ Bare links like this:
 will be converted into a link card.
 
 Inline links like [GitHub](https://github.com) will **not** be converted.
+
+Links to files like https://example.com/video.mp4 can be ignored using the `ignoreExtensions` option.
 ```
 
 ### Astro Example
@@ -113,6 +118,7 @@ export default defineConfig({
           thumbnailPosition: "right",
           noThumbnail: false,
           noFavicon: false,
+          ignoreExtensions: ['.mp4', '.pdf'],
           ogTransformer: (og) => {
             if (og.title === og.description) {
               return { ...og, description: 'custom description' };
@@ -143,6 +149,7 @@ export default defineConfig({
 | `noThumbnail` | boolean | `false` | If `true`, does not display the Open Graph thumbnail image. The generated link card HTML will not contain an `<img>` tag for the thumbnail. |
 | `noFavicon`   | boolean | `false` | If `true`, does not display the favicon in the link card. The generated link card HTML will not contain an `<img>` tag for the favicon. |
 | `ogTransformer` | `(og: OgData) => OgData` | `undefined` | A callback to transform the Open Graph data before rendering. `OgData` has the structure `{ title: string; description: string; faviconUrl?: string; imageUrl?: string }`. |
+| `ignoreExtensions` | string[] | `[]` | Skips link card conversion for URLs with the specified file extensions (e.g., `['.mp4', '.pdf']`). The original Markdown is left unchanged for these links. Matching is case-insensitive and only exact extension matches are ignored. |
 
 ## Styling
 
