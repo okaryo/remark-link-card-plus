@@ -44,7 +44,7 @@
     "msw": "^2.7.3",
     "remark": "^15.0.1",
     "typescript": "^5.8.2",
-    "vitest": "^3.1.1"
+    "vitest": "^3.2.4"
   },
   "dependencies": {
     "file-type": "^20.4.1",
