@@ -10,6 +10,10 @@
   "prHourlyLimit": 0,
   "packageRules": [
     {
+			"matchDepTypes": ["devDependencies"],
+			"groupName": "devDependencies"
+		},
+    {
       "matchFileNames": ["example/**"],
       "groupName": "example"
     }
