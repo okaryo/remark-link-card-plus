@@ -11,7 +11,12 @@ This page demonstrates how `remark-link-card-plus` converts links into cards or 
 
 By default, `remark-link-card-plus` does not apply any styles to the generated link cards. You can fully customize the appearance by defining your own CSS classes. Below is the TailwindCSS applied to the link cards on this demo page as an example:
 
+<details>
+<summary>Click to view the CSS styles used for link cards</summary>
+
 ```css
+@reference "./index.css";
+
 .remark-link-card-plus__container {
   @apply mb-4;
 }
@@ -55,6 +60,8 @@ By default, `remark-link-card-plus` does not apply any styles to the generated l
   @apply h-full w-full !my-0 object-cover;
 }
 ```
+
+</details>
 
 Feel free to adjust or replace this CSS with your own styles to suit your needs.
 

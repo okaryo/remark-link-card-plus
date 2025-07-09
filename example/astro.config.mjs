@@ -16,7 +16,8 @@ export default defineConfig({
         remarkLinkCard, {
           cache: true,
           shortenUrl: true,
-        }
+          ignoreExtensions: [".mp4"],
+        },
       ],
     ],
   },
