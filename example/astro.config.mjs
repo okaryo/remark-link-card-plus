@@ -1,20 +1,23 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
-import tailwind from '@astrojs/tailwind';
+import tailwindcss from "@tailwindcss/vite";
 import remarkLinkCard from 'remark-link-card-plus';
 
 // https://astro.build/config
 export default defineConfig({
-  integrations: [
-    tailwind(),
-  ],
+  vite: {
+    plugins: [
+      tailwindcss(),
+    ],
+  },
   markdown: {
     remarkPlugins: [
       [
         remarkLinkCard, {
           cache: true,
           shortenUrl: true,
-        }
+          ignoreExtensions: [".mp4"],
+        },
       ],
     ],
   },
