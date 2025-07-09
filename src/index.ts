@@ -302,9 +302,16 @@ const downloadImage = async (url: URL, saveDirectory: string) => {
     });
     const arrayBuffer = await response.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
+    const contentType = response.headers.get("Content-Type");
+    let extension = "";
 
-    const fileType = await fileTypeFromBuffer(buffer);
-    const extension = fileType ? `.${fileType.ext}` : ".png";
+    // NOTE: svg is text-based file formats, so file-type cannot detect it.
+    if (contentType === "image/svg+xml") {
+      extension = ".svg";
+    } else if (contentType?.startsWith("image/")) {
+      const fileType = await fileTypeFromBuffer(buffer);
+      extension = fileType ? `.${fileType.ext}` : "";
+    }
 
     const filename = `${hash}${extension}`;
     const saveFilePath = path.join(saveDirectory, filename);
