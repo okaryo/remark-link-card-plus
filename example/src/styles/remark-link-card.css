@@ -1,3 +1,5 @@
+@reference "./index.css";
+
 .remark-link-card-plus__container {
   @apply mb-4;
 }
