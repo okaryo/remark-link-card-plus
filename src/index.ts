@@ -310,7 +310,7 @@ const downloadImage = async (url: URL, saveDirectory: string) => {
       extension = ".svg";
     } else if (contentType?.startsWith("image/")) {
       const fileType = await fileTypeFromBuffer(buffer);
-      extension = fileType ? `.${fileType.ext}` : "";
+      extension = fileType ? `.${fileType.ext}` : ".png";
     }
 
     const filename = `${hash}${extension}`;
