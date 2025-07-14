@@ -238,7 +238,7 @@ const getFaviconUrl = async (
 
   if (faviconUrl && options.cache) {
     try {
-      const faviconFilename = await downloadImage(
+      const faviconFilename = await getCachedImageFilename(
         new URL(faviconUrl),
         path.join(process.cwd(), defaultSaveDirectory, defaultOutputDirectory),
       );
@@ -267,7 +267,7 @@ const getOgImageUrl = async (
   let ogImageUrl = imageUrl;
 
   if (ogImageUrl && options.cache) {
-    const imageFilename = await downloadImage(
+    const imageFilename = await getCachedImageFilename(
       new URL(ogImageUrl),
       path.join(process.cwd(), defaultSaveDirectory, defaultOutputDirectory),
     );
@@ -285,7 +285,10 @@ const extractOgImageUrl = (ogResult: OgObject | undefined) => {
     : undefined;
 };
 
-const downloadImage = async (url: URL, saveDirectory: string) => {
+const getCachedImageFilename = async (
+  url: URL,
+  saveDirectory: string,
+): Promise<string | undefined> => {
   const hash = createHash("sha256").update(decodeURI(url.href)).digest("hex");
 
   try {
