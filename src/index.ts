@@ -238,7 +238,7 @@ const getFaviconUrl = async (
 
   if (faviconUrl && options.cache) {
     try {
-      const faviconFilename = await downloadImage(
+      const faviconFilename = await getCachedImageFilename(
         new URL(faviconUrl),
         path.join(process.cwd(), defaultSaveDirectory, defaultOutputDirectory),
       );
@@ -267,7 +267,7 @@ const getOgImageUrl = async (
   let ogImageUrl = imageUrl;
 
   if (ogImageUrl && options.cache) {
-    const imageFilename = await downloadImage(
+    const imageFilename = await getCachedImageFilename(
       new URL(ogImageUrl),
       path.join(process.cwd(), defaultSaveDirectory, defaultOutputDirectory),
     );
@@ -285,7 +285,10 @@ const extractOgImageUrl = (ogResult: OgObject | undefined) => {
     : undefined;
 };
 
-const downloadImage = async (url: URL, saveDirectory: string) => {
+const getCachedImageFilename = async (
+  url: URL,
+  saveDirectory: string,
+): Promise<string | undefined> => {
   const hash = createHash("sha256").update(decodeURI(url.href)).digest("hex");
 
   try {
@@ -305,12 +308,12 @@ const downloadImage = async (url: URL, saveDirectory: string) => {
     const contentType = response.headers.get("Content-Type");
     let extension = "";
 
-    // NOTE: svg is text-based file formats, so file-type cannot detect it.
-    if (contentType === "image/svg+xml") {
+    // NOTE: file-type cannot detect text-based formats like SVG, so we handle image/svg+xml manually
+    if (contentType?.startsWith("image/svg+xml")) {
       extension = ".svg";
     } else if (contentType?.startsWith("image/")) {
       const fileType = await fileTypeFromBuffer(buffer);
-      extension = fileType ? `.${fileType.ext}` : "";
+      extension = fileType ? `.${fileType.ext}` : ".png";
     }
 
     const filename = `${hash}${extension}`;

@@ -456,6 +456,79 @@ Example:
           /src="\/remark-link-card-plus\/.*\.png"/,
         );
       });
+
+      test("Caches favicon with .svg extension when Content-Type is image/svg+xml", async () => {
+        // biome-ignore lint/suspicious/noExplicitAny: for open-graph-scraper mock
+        const mockedClient = vi.mocked(client as any);
+        mockedClient.mockResolvedValueOnce({
+          error: false,
+          result: {
+            ogTitle: "SVG Favicon Title",
+            ogDescription: "SVG Favicon Description",
+            favicon: "https://example.com/favicon.svg",
+          },
+        });
+
+        vi.spyOn(global, "fetch").mockResolvedValueOnce(
+          new Response("<svg></svg>", {
+            status: 200,
+            headers: {
+              "Content-Type": "image/svg+xml",
+            },
+          }),
+        );
+
+        const input = `## test
+
+[https://example.com](https://example.com)
+`;
+
+        const processorWithCache = remark().use(remarkLinkCard, {
+          cache: true,
+        });
+        const { value } = await processorWithCache.process(input);
+
+        expect(value.toString()).toContain(`src="/remark-link-card-plus/`);
+        expect(value.toString()).toMatch(
+          /src="\/remark-link-card-plus\/.*\.svg"/,
+        );
+      });
+
+      test("Caches .svg favicon when Content-Type includes parameters like charset", async () => {
+        // biome-ignore lint/suspicious/noExplicitAny: for open-graph-scraper mock
+        const mockedClient = vi.mocked(client as any);
+        mockedClient.mockResolvedValueOnce({
+          error: false,
+          result: {
+            ogTitle: "SVG Favicon With Charset",
+            ogDescription: "Should still be .svg",
+            favicon: "https://example.com/favicon.svg",
+          },
+        });
+
+        vi.spyOn(global, "fetch").mockResolvedValueOnce(
+          new Response("<svg></svg>", {
+            status: 200,
+            headers: {
+              "Content-Type": "image/svg+xml; charset=utf-8",
+            },
+          }),
+        );
+
+        const input = `## test
+
+https://example.com
+`;
+
+        const processorWithCache = remark().use(remarkLinkCard, {
+          cache: true,
+        });
+        const { value } = await processorWithCache.process(input);
+
+        expect(value.toString()).toMatch(
+          /src="\/remark-link-card-plus\/.*\.svg"/,
+        );
+      });
     });
 
     describe("shortenUrl", () => {
