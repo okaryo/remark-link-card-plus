@@ -306,7 +306,7 @@ const downloadImage = async (url: URL, saveDirectory: string) => {
     let extension = "";
 
     // NOTE: svg is text-based file formats, so file-type cannot detect it.
-    if (contentType === "image/svg+xml") {
+    if (contentType?.startsWith("image/svg+xml")) {
       extension = ".svg";
     } else if (contentType?.startsWith("image/")) {
       const fileType = await fileTypeFromBuffer(buffer);
