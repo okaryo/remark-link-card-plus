@@ -308,7 +308,7 @@ const getCachedImageFilename = async (
     const contentType = response.headers.get("Content-Type");
     let extension = "";
 
-    // NOTE: svg is text-based file formats, so file-type cannot detect it.
+    // NOTE: file-type cannot detect text-based formats like SVG, so we handle image/svg+xml manually
     if (contentType?.startsWith("image/svg+xml")) {
       extension = ".svg";
     } else if (contentType?.startsWith("image/")) {
