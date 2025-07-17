@@ -25,7 +25,7 @@ type Options = {
   thumbnailPosition?: "right" | "left";
   noThumbnail?: boolean;
   noFavicon?: boolean;
-  ogTransformer?: (og: OgData) => OgData;
+  ogTransformer?: (og: OgData, url: URL) => OgData;
   ignoreExtensions?: string[];
 };
 
@@ -186,7 +186,7 @@ const getLinkCardData = async (url: URL, options: Options) => {
   };
 
   if (options.ogTransformer) {
-    ogData = options.ogTransformer(ogData);
+    ogData = options.ogTransformer(ogData, url);
   }
 
   const title = ogData?.title || url.hostname;
