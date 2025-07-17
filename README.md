@@ -119,7 +119,10 @@ export default defineConfig({
           noThumbnail: false,
           noFavicon: false,
           ignoreExtensions: ['.mp4', '.pdf'],
-          ogTransformer: (og) => {
+          ogTransformer: (og, url) => {
+            if (url.hostname === 'github.com') {
+              return { ...og, title: `GitHub: ${og.title}` };
+            }
             if (og.title === og.description) {
               return { ...og, description: 'custom description' };
             }
@@ -148,7 +151,7 @@ export default defineConfig({
 | `thumbnailPosition` | string | `right`  | Specifies the position of the thumbnail in the card. Accepts `"left"` or `"right"`. |
 | `noThumbnail` | boolean | `false` | If `true`, does not display the Open Graph thumbnail image. The generated link card HTML will not contain an `<img>` tag for the thumbnail. |
 | `noFavicon`   | boolean | `false` | If `true`, does not display the favicon in the link card. The generated link card HTML will not contain an `<img>` tag for the favicon. |
-| `ogTransformer` | `(og: OgData) => OgData` | `undefined` | A callback to transform the Open Graph data before rendering. `OgData` has the structure `{ title: string; description: string; faviconUrl?: string; imageUrl?: string }`. |
+| `ogTransformer` | `(og: OgData, url: URL) => OgData` | `undefined` | A callback to transform the Open Graph data before rendering. The function receives the original OG data and the URL being processed. `OgData` has the structure `{ title: string; description: string; faviconUrl?: string; imageUrl?: string }`. |
 | `ignoreExtensions` | string[] | `[]` | Skips link card conversion for URLs with the specified file extensions (e.g., `['.mp4', '.pdf']`). The original Markdown is left unchanged for these links. Matching is case-insensitive and only exact extension matches are ignored. |
 
 ## Styling

@@ -704,6 +704,72 @@ https://example.com
         expect(value).toContain("https://custom.com/image.png");
       });
 
+      test("should pass URL parameter to ogTransformer", async () => {
+        const markdown = `
+https://example.com/path?param=value
+`;
+
+        const ogTransformerSpy = vi.fn((og, url) => ({
+          ...og,
+          title: `Title for ${url.hostname}`,
+          description: `Path: ${url.pathname}`,
+        }));
+
+        const { value } = await remark()
+          .use(remarkLinkCard, {
+            ogTransformer: ogTransformerSpy,
+          })
+          .process(markdown);
+
+        expect(ogTransformerSpy).toHaveBeenCalledWith(
+          expect.objectContaining({
+            title: "Test Site Title",
+            description: "Test Description",
+          }),
+          new URL("https://example.com/path?param=value"),
+        );
+
+        expect(value).toContain("Title for example.com");
+        expect(value).toContain("Path: /path");
+      });
+
+      test("should use URL information in ogTransformer for conditional transformation", async () => {
+        const markdown = `
+https://github.com/user/repo
+
+https://example.com/page
+`;
+
+        const { value } = await remark()
+          .use(remarkLinkCard, {
+            ogTransformer: (og, url) => {
+              if (url.hostname === "github.com") {
+                return {
+                  ...og,
+                  title: `GitHub: ${og.title}`,
+                  description: "This is a GitHub repository",
+                };
+              }
+              return og;
+            },
+          })
+          .process(markdown);
+
+        expect(value).toContain(
+          '<div class="remark-link-card-plus__title">GitHub: Test Site Title</div>',
+        );
+        expect(value).toContain(
+          '<div class="remark-link-card-plus__description">This is a GitHub repository</div>',
+        );
+        // example.com should not be modified
+        expect(value).toContain(
+          '<div class="remark-link-card-plus__title">Test Site Title</div>',
+        );
+        expect(value).toContain(
+          '<div class="remark-link-card-plus__description">Test Description</div>',
+        );
+      });
+
       test("should fall back to original OG data if ogTransformer is not provided", async () => {
         const markdown = `
 https://github.com
