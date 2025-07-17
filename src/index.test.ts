@@ -755,11 +755,11 @@ https://example.com/page
           })
           .process(markdown);
 
-        expect(value).toContain("GitHub: Test Site Title");
-        expect(value).toContain("This is a GitHub repository");
+        expect(value).toContain('<div class="remark-link-card-plus__title">GitHub: Test Site Title</div>');
+        expect(value).toContain('<div class="remark-link-card-plus__description">This is a GitHub repository</div>');
         // example.com should not be modified
-        expect(value).toContain("Test Site Title");
-        expect(value).toContain("Test Description");
+        expect(value).toContain('<div class="remark-link-card-plus__title">Test Site Title</div>');
+        expect(value).toContain('<div class="remark-link-card-plus__description">Test Description</div>');
       });
 
       test("should fall back to original OG data if ogTransformer is not provided", async () => {
