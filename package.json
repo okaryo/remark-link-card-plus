@@ -39,7 +39,7 @@
   "devDependencies": {
     "@biomejs/biome": "1.9.4",
     "@remark-embedder/core": "^3.0.3",
-    "@types/node": "^22.16.4",
+    "@types/node": "^22.16.5",
     "@types/sanitize-html": "^2.16.0",
     "msw": "^2.10.4",
     "remark": "^15.0.1",
