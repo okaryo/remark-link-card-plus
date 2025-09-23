@@ -84,12 +84,12 @@ https://example.com/path
         <div class="remark-link-card-plus__description">Test Description</div>
       </div>
       <div class="remark-link-card-plus__meta">
-        <img src="https://www.google.com/s2/favicons?domain=example.com" class="remark-link-card-plus__favicon" width="14" height="14" alt="favicon">
+        <img src="https://www.google.com/s2/favicons?domain=example.com" class="remark-link-card-plus__favicon" width="14" height="14" alt="">
         <span class="remark-link-card-plus__url">example.com</span>
       </div>
     </div>
     <div class="remark-link-card-plus__thumbnail">
-      <img src="http://example.com" class="remark-link-card-plus__image" alt="ogImage">
+      <img src="http://example.com" class="remark-link-card-plus__image" alt="">
     </div>
   </a>
 </div>
@@ -102,12 +102,12 @@ https://example.com/path
         <div class="remark-link-card-plus__description">Test Description</div>
       </div>
       <div class="remark-link-card-plus__meta">
-        <img src="https://www.google.com/s2/favicons?domain=example.com" class="remark-link-card-plus__favicon" width="14" height="14" alt="favicon">
+        <img src="https://www.google.com/s2/favicons?domain=example.com" class="remark-link-card-plus__favicon" width="14" height="14" alt="">
         <span class="remark-link-card-plus__url">example.com</span>
       </div>
     </div>
     <div class="remark-link-card-plus__thumbnail">
-      <img src="http://example.com" class="remark-link-card-plus__image" alt="ogImage">
+      <img src="http://example.com" class="remark-link-card-plus__image" alt="">
     </div>
   </a>
 </div>
@@ -120,12 +120,12 @@ https://example.com/path
         <div class="remark-link-card-plus__description">Test Description</div>
       </div>
       <div class="remark-link-card-plus__meta">
-        <img src="https://www.google.com/s2/favicons?domain=example.com" class="remark-link-card-plus__favicon" width="14" height="14" alt="favicon">
+        <img src="https://www.google.com/s2/favicons?domain=example.com" class="remark-link-card-plus__favicon" width="14" height="14" alt="">
         <span class="remark-link-card-plus__url">example.com</span>
       </div>
     </div>
     <div class="remark-link-card-plus__thumbnail">
-      <img src="http://example.com" class="remark-link-card-plus__image" alt="ogImage">
+      <img src="http://example.com" class="remark-link-card-plus__image" alt="">
     </div>
   </a>
 </div>
@@ -138,12 +138,12 @@ https://example.com/path
         <div class="remark-link-card-plus__description">Test Description</div>
       </div>
       <div class="remark-link-card-plus__meta">
-        <img src="https://www.google.com/s2/favicons?domain=example.com" class="remark-link-card-plus__favicon" width="14" height="14" alt="favicon">
+        <img src="https://www.google.com/s2/favicons?domain=example.com" class="remark-link-card-plus__favicon" width="14" height="14" alt="">
         <span class="remark-link-card-plus__url">example.com</span>
       </div>
     </div>
     <div class="remark-link-card-plus__thumbnail">
-      <img src="http://example.com" class="remark-link-card-plus__image" alt="ogImage">
+      <img src="http://example.com" class="remark-link-card-plus__image" alt="">
     </div>
   </a>
 </div>
@@ -156,12 +156,12 @@ https://example.com/path
         <div class="remark-link-card-plus__description">Test Description</div>
       </div>
       <div class="remark-link-card-plus__meta">
-        <img src="https://www.google.com/s2/favicons?domain=example.com" class="remark-link-card-plus__favicon" width="14" height="14" alt="favicon">
+        <img src="https://www.google.com/s2/favicons?domain=example.com" class="remark-link-card-plus__favicon" width="14" height="14" alt="">
         <span class="remark-link-card-plus__url">example.com</span>
       </div>
     </div>
     <div class="remark-link-card-plus__thumbnail">
-      <img src="http://example.com" class="remark-link-card-plus__image" alt="ogImage">
+      <img src="http://example.com" class="remark-link-card-plus__image" alt="">
     </div>
   </a>
 </div>
@@ -174,12 +174,12 @@ https://example.com/path
         <div class="remark-link-card-plus__description">Test Description</div>
       </div>
       <div class="remark-link-card-plus__meta">
-        <img src="https://www.google.com/s2/favicons?domain=example.com" class="remark-link-card-plus__favicon" width="14" height="14" alt="favicon">
+        <img src="https://www.google.com/s2/favicons?domain=example.com" class="remark-link-card-plus__favicon" width="14" height="14" alt="">
         <span class="remark-link-card-plus__url">example.com</span>
       </div>
     </div>
     <div class="remark-link-card-plus__thumbnail">
-      <img src="http://example.com" class="remark-link-card-plus__image" alt="ogImage">
+      <img src="http://example.com" class="remark-link-card-plus__image" alt="">
     </div>
   </a>
 </div>
@@ -302,7 +302,7 @@ https://example.com/path
       </div>
     </div>
     <div class="remark-link-card-plus__thumbnail">
-      <img src="http://example.com" class="remark-link-card-plus__image" alt="ogImage">
+      <img src="http://example.com" class="remark-link-card-plus__image" alt="">
     </div>
   </a>
 </div>
@@ -339,7 +339,7 @@ https://example.com/path
         <div class="remark-link-card-plus__description">Test Description</div>
       </div>
       <div class="remark-link-card-plus__meta">
-        <img src="https://www.google.com/s2/favicons?domain=example.com" class="remark-link-card-plus__favicon" width="14" height="14" alt="favicon">
+        <img src="https://www.google.com/s2/favicons?domain=example.com" class="remark-link-card-plus__favicon" width="14" height="14" alt="">
         <span class="remark-link-card-plus__url">example.com</span>
       </div>
     </div>
@@ -377,7 +377,7 @@ https://example.com/path
         <div class="remark-link-card-plus__description">evil description</div>
       </div>
       <div class="remark-link-card-plus__meta">
-        <img src="https://www.google.com/s2/favicons?domain=example.com" class="remark-link-card-plus__favicon" width="14" height="14" alt="favicon">
+        <img src="https://www.google.com/s2/favicons?domain=example.com" class="remark-link-card-plus__favicon" width="14" height="14" alt="">
         <span class="remark-link-card-plus__url">example.com</span>
       </div>
     </div>
@@ -556,7 +556,7 @@ https://example.com
         const processorWithDefaultThumbnail = remark().use(remarkLinkCard, {});
         const { value } = await processorWithDefaultThumbnail.process(input);
         expect(removeLineLeadingSpaces(value.toString())).toContain(
-          `<img src="http://example.com" class="remark-link-card-plus__image" alt="ogImage">
+          `<img src="http://example.com" class="remark-link-card-plus__image" alt="">
 </div>
 </a>
 `,
@@ -599,7 +599,9 @@ https://example.com
           thumbnailPosition: "left",
         });
         const { value } = await processorWithoutThumbnail.process(input);
-        expect(value.toString()).not.toContain(`alt="ogImage"`);
+        expect(value.toString()).not.toContain(
+          `class="remark-link-card-plus__thumbnail"`,
+        );
       });
     });
 
@@ -614,7 +616,7 @@ https://example.com
           .process(markdown);
 
         expect(result.value).toContain(
-          '<img src="http://example.com" class="remark-link-card-plus__image" alt="ogImage">',
+          '<img src="http://example.com" class="remark-link-card-plus__image" alt="">',
         );
         expect(result.value).toContain('class="remark-link-card-plus__image"');
       });
@@ -625,7 +627,7 @@ https://example.com
           .process(markdown);
 
         expect(result.value).not.toContain(
-          '<img src="http://example.com" class="remark-link-card-plus__image" alt="ogImage">',
+          '<img src="http://example.com" class="remark-link-card-plus__image" alt="">',
         );
         expect(result.value).not.toContain(
           'class="remark-link-card-plus__image"',
@@ -654,7 +656,7 @@ https://example.com
           .process(markdown);
 
         expect(result.value).toContain(
-          '<img src="https://www.google.com/s2/favicons?domain=example.com" class="remark-link-card-plus__favicon" width="14" height="14" alt="favicon">',
+          '<img src="https://www.google.com/s2/favicons?domain=example.com" class="remark-link-card-plus__favicon" width="14" height="14" alt="">',
         );
         expect(result.value).toContain(
           'class="remark-link-card-plus__favicon"',
@@ -671,7 +673,7 @@ https://example.com
           .process(markdown);
 
         expect(result.value).not.toContain(
-          '<img src="https://www.google.com/s2/favicons?domain=example.com" class="remark-link-card-plus__favicon" width="14" height="14" alt="favicon">',
+          '<img src="https://www.google.com/s2/favicons?domain=example.com" class="remark-link-card-plus__favicon" width="14" height="14" alt="">',
         );
         expect(result.value).not.toContain(
           'class="remark-link-card-plus__favicon"',
@@ -841,12 +843,12 @@ https://example.com/image.png
         <div class="remark-link-card-plus__description">Test Description</div>
       </div>
       <div class="remark-link-card-plus__meta">
-        <img src="https://www.google.com/s2/favicons?domain=example.com" class="remark-link-card-plus__favicon" width="14" height="14" alt="favicon">
+        <img src="https://www.google.com/s2/favicons?domain=example.com" class="remark-link-card-plus__favicon" width="14" height="14" alt="">
         <span class="remark-link-card-plus__url">example.com</span>
       </div>
     </div>
     <div class="remark-link-card-plus__thumbnail">
-      <img src="http://example.com" class="remark-link-card-plus__image" alt="ogImage">
+      <img src="http://example.com" class="remark-link-card-plus__image" alt="">
     </div>
   </a>
 </div>
@@ -863,12 +865,12 @@ https://example.com/movie.mov
         <div class="remark-link-card-plus__description">Test Description</div>
       </div>
       <div class="remark-link-card-plus__meta">
-        <img src="https://www.google.com/s2/favicons?domain=example.com" class="remark-link-card-plus__favicon" width="14" height="14" alt="favicon">
+        <img src="https://www.google.com/s2/favicons?domain=example.com" class="remark-link-card-plus__favicon" width="14" height="14" alt="">
         <span class="remark-link-card-plus__url">example.com</span>
       </div>
     </div>
     <div class="remark-link-card-plus__thumbnail">
-      <img src="http://example.com" class="remark-link-card-plus__image" alt="ogImage">
+      <img src="http://example.com" class="remark-link-card-plus__image" alt="">
     </div>
   </a>
 </div>
@@ -961,12 +963,12 @@ https://example.com/image.png
         <div class="remark-link-card-plus__description">Test Description</div>
       </div>
       <div class="remark-link-card-plus__meta">
-        <img src="https://www.google.com/s2/favicons?domain=example.com" class="remark-link-card-plus__favicon" width="14" height="14" alt="favicon">
+        <img src="https://www.google.com/s2/favicons?domain=example.com" class="remark-link-card-plus__favicon" width="14" height="14" alt="">
         <span class="remark-link-card-plus__url">example.com</span>
       </div>
     </div>
     <div class="remark-link-card-plus__thumbnail">
-      <img src="http://example.com" class="remark-link-card-plus__image" alt="ogImage">
+      <img src="http://example.com" class="remark-link-card-plus__image" alt="">
     </div>
   </a>
 </div>

@@ -347,7 +347,7 @@ const createLinkCardNode = (data: LinkCardData, options: Options): Html => {
   const thumbnail = ogImageUrl
     ? `
 <div class="${className("thumbnail")}">
-  <img src="${ogImageUrl}" class="${className("image")}" alt="ogImage">
+  <img src="${ogImageUrl}" class="${className("image")}" alt="">
 </div>`.trim()
     : "";
 
@@ -358,7 +358,7 @@ const createLinkCardNode = (data: LinkCardData, options: Options): Html => {
     <div class="${className("description")}">${sanitizeHtml(description)}</div>
   </div>
   <div class="${className("meta")}">
-    ${faviconUrl ? `<img src="${faviconUrl}" class="${className("favicon")}" width="14" height="14" alt="favicon">` : ""}
+    ${faviconUrl ? `<img src="${faviconUrl}" class="${className("favicon")}" width="14" height="14" alt="">` : ""}
     <span class="${className("url")}">${sanitizeHtml(displayUrl)}</span>
   </div>
 </div>
