@@ -82,12 +82,12 @@ Bare links like this:
         <div class="remark-link-card-plus__description">Join the world's most widely adopted, AI-powered developer platform where millions of developers, businesses, and the largest open source community build software that advances humanity.</div>
       </div>
       <div class="remark-link-card-plus__meta">
-        <img src="https://www.google.com/s2/favicons?domain=github.com" class="remark-link-card-plus__favicon" width="14" height="14" alt="favicon">
+        <img src="https://www.google.com/s2/favicons?domain=github.com" class="remark-link-card-plus__favicon" width="14" height="14" alt="">
         <span class="remark-link-card-plus__url">github.com</span>
       </div>
     </div>
     <div class="remark-link-card-plus__thumbnail">
-      <img src="https://github.githubassets.com/assets/home24-5939032587c9.jpg" class="remark-link-card-plus__image" alt="ogImage">
+      <img src="https://github.githubassets.com/assets/home24-5939032587c9.jpg" class="remark-link-card-plus__image" alt="">
     </div>
   </a>
 </div>
