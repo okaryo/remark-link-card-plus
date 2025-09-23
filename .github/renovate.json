@@ -16,6 +16,10 @@
     {
       "matchFileNames": ["example/**"],
       "groupName": "example"
+    },
+    {
+      "matchManagers": ["github-actions"],
+      "groupName": "GitHub Actions"
     }
   ]
 }
