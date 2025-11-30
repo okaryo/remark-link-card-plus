@@ -178,21 +178,24 @@ const getFaviconImageSrc = async (url: URL) => {
 
 const getLinkCardData = async (url: URL, options: Options) => {
   const ogRawResult = await getOpenGraph(url);
-  let ogData: OgData = {
+  const rawOgData: OgData = {
     title: ogRawResult?.ogTitle || "",
     description: ogRawResult?.ogDescription || "",
     faviconUrl: ogRawResult?.favicon,
     imageUrl: extractOgImageUrl(ogRawResult),
   };
 
-  if (options.ogTransformer) {
-    ogData = options.ogTransformer(ogData, url);
-  }
+  const ogData = options.ogTransformer
+    ? options.ogTransformer(rawOgData, url)
+    : undefined;
 
-  const title = ogData?.title || url.hostname;
-  const description = ogData?.description || "";
-  const faviconUrl = await getFaviconUrl(url, ogData?.faviconUrl, options);
-  const ogImageUrl = await getOgImageUrl(ogData.imageUrl, options);
+  const title = ogData?.title || rawOgData.title || url.hostname;
+  const description = ogData?.description || rawOgData.description || "";
+  const faviconUrl =
+    ogData?.faviconUrl ??
+    (await getFaviconUrl(url, rawOgData.faviconUrl, options));
+  const ogImageUrl =
+    ogData?.imageUrl ?? (await getOgImageUrl(rawOgData.imageUrl, options));
 
   let displayUrl = options.shortenUrl ? url.hostname : url.toString();
   try {
@@ -221,6 +224,7 @@ const getFaviconUrl = async (
   if (options.noFavicon) return "";
 
   let faviconUrl = ogFavicon;
+
   if (faviconUrl && !URL.canParse(faviconUrl)) {
     try {
       faviconUrl = new URL(faviconUrl, url.origin).toString();
@@ -262,6 +266,7 @@ const getOgImageUrl = async (
   if (options.noThumbnail) return "";
 
   const isValidUrl = imageUrl && imageUrl.length > 0 && URL.canParse(imageUrl);
+
   if (!isValidUrl) return "";
 
   let ogImageUrl = imageUrl;
