@@ -813,6 +813,59 @@ https://example.com
           `<img src="https://example.com/relative-path-favicon.ico" class="remark-link-card-plus__favicon"`,
         );
       });
+
+      test("should preserve local image path starting with /", async () => {
+        const markdown = `
+https://example.com
+`;
+        const { value } = await remark()
+          .use(remarkLinkCard, {
+            ogTransformer: (og) => ({
+              ...og,
+              imageUrl: "/images/local-card.png",
+            }),
+          })
+          .process(markdown);
+
+        expect(value.toString()).toContain('src="/images/local-card.png"');
+      });
+
+      test("should preserve local favicon path starting with /", async () => {
+        const markdown = `
+https://example.com
+`;
+        const { value } = await remark()
+          .use(remarkLinkCard, {
+            ogTransformer: (og) => ({
+              ...og,
+              faviconUrl: "/images/local-favicon.png",
+            }),
+          })
+          .process(markdown);
+
+        expect(value.toString()).toContain('src="/images/local-favicon.png"');
+      });
+
+      test("should not cache local paths", async () => {
+        const markdown = `
+https://example.com
+`;
+        const { value } = await remark()
+          .use(remarkLinkCard, {
+            cache: true,
+            ogTransformer: (og) => ({
+              ...og,
+              imageUrl: "/images/local-card.png",
+              faviconUrl: "/images/local-favicon.png",
+            }),
+          })
+          .process(markdown);
+
+        // ローカルパスがそのまま使われ、キャッシュパスに変換されていないことを確認
+        expect(value.toString()).toContain('src="/images/local-card.png"');
+        expect(value.toString()).toContain('src="/images/local-favicon.png"');
+        expect(value.toString()).not.toContain("/remark-link-card-plus/");
+      });
     });
 
     describe("ignoreExtensions", () => {

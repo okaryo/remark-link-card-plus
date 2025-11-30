@@ -3,24 +3,26 @@
 [![CI](https://github.com/okaryo/remark-link-card-plus/actions/workflows/ci.yml/badge.svg)](https://github.com/okaryo/remark-link-card-plus/actions/workflows/ci.yml)
 [![npm version](https://img.shields.io/npm/v/remark-link-card-plus)](https://www.npmjs.com/package/remark-link-card-plus)
 
-[remark](https://github.com/remarkjs/remark) plugin to convert text links to link cards, building upon and improving [remark-link-card](https://github.com/gladevise/remark-link-card).
+This is a fork of [remark-link-card-plus](https://github.com/okaryo/remark-link-card-plus) with enhanced `ogTransformer` support, allowing you to override `imageUrl` and `faviconUrl` with local image paths.
 
-You can see it in action on the [demo page](https://remark-link-card-plus.pages.dev/).
+[remark](https://github.com/remarkjs/remark) plugin to convert text links to link cards, building upon and improving [remark-link-card](https://github.com/gladevise/remark-link-card).
 
 ## Features
 
 `remark-link-card-plus` is a fork of the original `remark-link-card` with the following changes:
 
-### Differences from the original:
+### Differences from the original
+
 * **TypeScript support**: Fully rewritten in TypeScript for improved type safety and developer experience.
 * **Target blank**: Links in link cards now open in a new tab using `target="_blank"`.
 * **No link cards in lists**: Links inside list items (`listItem`) are not converted into link cards.
 * **Thumbnail position customization**: Select whether the thumbnail is displayed on the left or right of the card.
 * **Optional image and favicon display**: Added `noThumbnail` and `noFavicon` options to hide thumbnails and favicons from link cards.
-* **OG data transformer**: The `ogTransformer` option allows customization of Open Graph data such as the title, description, favicon, and image before rendering the link card.
+* **OG data transformer**: The `ogTransformer` option allows customization of Open Graph data such as the title, description, favicon, and image before rendering the link card. You can also override `imageUrl` and `faviconUrl` with local paths (e.g., `/images/custom-card.png`).
 * **Ignore by extension**: The `ignoreExtensions` option allows you to skip link card conversion for URLs with specific file extensions (e.g., `.mp4`, `.pdf`).
 
-### Retained features:
+### Retained features
+
 * **Options support**:
   * `cache`: Cache images for faster loading and local storage.
   * `shortenUrl`: Display only the hostname of URLs in link cards.
@@ -123,6 +125,14 @@ export default defineConfig({
             if (url.hostname === 'github.com') {
               return { ...og, title: `GitHub: ${og.title}` };
             }
+            // Use local images for specific domains
+            if (url.hostname === 'example.com') {
+              return {
+                ...og,
+                imageUrl: '/images/example-card.png',
+                faviconUrl: '/images/example-favicon.ico',
+              };
+            }
             if (og.title === og.description) {
               return { ...og, description: 'custom description' };
             }
@@ -151,7 +161,7 @@ export default defineConfig({
 | `thumbnailPosition` | string | `right`  | Specifies the position of the thumbnail in the card. Accepts `"left"` or `"right"`. |
 | `noThumbnail` | boolean | `false` | If `true`, does not display the Open Graph thumbnail image. The generated link card HTML will not contain an `<img>` tag for the thumbnail. |
 | `noFavicon`   | boolean | `false` | If `true`, does not display the favicon in the link card. The generated link card HTML will not contain an `<img>` tag for the favicon. |
-| `ogTransformer` | `(og: OgData, url: URL) => OgData` | `undefined` | A callback to transform the Open Graph data before rendering. The function receives the original OG data and the URL being processed. `OgData` has the structure `{ title: string; description: string; faviconUrl?: string; imageUrl?: string }`. |
+| `ogTransformer` | `(og: OgData, url: URL) => OgData` | `undefined` | A callback to transform the Open Graph data before rendering. The function receives the original OG data and the URL being processed. `OgData` has the structure `{ title: string; description: string; faviconUrl?: string; imageUrl?: string }`. When `faviconUrl` or `imageUrl` is set, it will be used as-is (supports local paths like `/images/favicon.png`). |
 | `ignoreExtensions` | string[] | `[]` | Skips link card conversion for URLs with the specified file extensions (e.g., `['.mp4', '.pdf']`). The original Markdown is left unchanged for these links. Matching is case-insensitive and only exact extension matches are ignored. |
 
 ## Styling
