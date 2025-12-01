@@ -178,21 +178,38 @@ const getFaviconImageSrc = async (url: URL) => {
 
 const getLinkCardData = async (url: URL, options: Options) => {
   const ogRawResult = await getOpenGraph(url);
-  let ogData: OgData = {
+  const rawOgData: OgData = {
     title: ogRawResult?.ogTitle || "",
     description: ogRawResult?.ogDescription || "",
     faviconUrl: ogRawResult?.favicon,
     imageUrl: extractOgImageUrl(ogRawResult),
   };
 
-  if (options.ogTransformer) {
-    ogData = options.ogTransformer(ogData, url);
-  }
+  const ogData = options.ogTransformer
+    ? options.ogTransformer(rawOgData, url)
+    : rawOgData;
 
-  const title = ogData?.title || url.hostname;
-  const description = ogData?.description || "";
-  const faviconUrl = await getFaviconUrl(url, ogData?.faviconUrl, options);
-  const ogImageUrl = await getOgImageUrl(ogData.imageUrl, options);
+  // ogTransformer で明示的に設定されたかどうかを検出
+  const isTransformedFavicon =
+    options.ogTransformer !== undefined &&
+    ogData.faviconUrl !== rawOgData.faviconUrl;
+  const isTransformedImage =
+    options.ogTransformer !== undefined &&
+    ogData.imageUrl !== rawOgData.imageUrl;
+
+  const title = ogData.title || url.hostname;
+  const description = ogData.description || "";
+  const faviconUrl = await getFaviconUrl(
+    url,
+    ogData.faviconUrl,
+    options,
+    isTransformedFavicon,
+  );
+  const ogImageUrl = await getOgImageUrl(
+    ogData.imageUrl,
+    options,
+    isTransformedImage,
+  );
 
   let displayUrl = options.shortenUrl ? url.hostname : url.toString();
   try {
@@ -217,10 +234,17 @@ const getFaviconUrl = async (
   url: URL,
   ogFavicon: string | undefined,
   options: Options,
+  isTransformed: boolean,
 ) => {
   if (options.noFavicon) return "";
 
   let faviconUrl = ogFavicon;
+
+  // ogTransformer で明示的に設定されたローカルパスはそのまま返す（変換・キャッシュしない）
+  if (isTransformed && faviconUrl?.startsWith("/")) {
+    return faviconUrl;
+  }
+
   if (faviconUrl && !URL.canParse(faviconUrl)) {
     try {
       faviconUrl = new URL(faviconUrl, url.origin).toString();
@@ -258,10 +282,17 @@ const getFaviconUrl = async (
 const getOgImageUrl = async (
   imageUrl: string | undefined,
   options: Options,
+  isTransformed: boolean,
 ) => {
   if (options.noThumbnail) return "";
 
+  // ogTransformer で明示的に設定されたローカルパスはそのまま返す（キャッシュしない）
+  if (isTransformed && imageUrl?.startsWith("/")) {
+    return imageUrl;
+  }
+
   const isValidUrl = imageUrl && imageUrl.length > 0 && URL.canParse(imageUrl);
+
   if (!isValidUrl) return "";
 
   let ogImageUrl = imageUrl;
