@@ -189,7 +189,6 @@ const getLinkCardData = async (url: URL, options: Options) => {
     ? options.ogTransformer(rawOgData, url)
     : rawOgData;
 
-  // ogTransformer で明示的に設定されたかどうかを検出
   const isTransformedFavicon = ogData.faviconUrl !== rawOgData.faviconUrl;
   const isTransformedImage = ogData.imageUrl !== rawOgData.imageUrl;
 
