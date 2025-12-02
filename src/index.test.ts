@@ -815,6 +815,114 @@ https://example.com
       });
     });
 
+    describe("Local Path Support (via ogTransformer)", () => {
+      test("should preserve local image path when set via ogTransformer", async () => {
+        const markdown = `
+https://example.com
+`;
+        const { value } = await remark()
+          .use(remarkLinkCard, {
+            ogTransformer: (og) => ({
+              ...og,
+              imageUrl: "/images/local-card.png",
+            }),
+          })
+          .process(markdown);
+
+        expect(value.toString()).toContain('src="/images/local-card.png"');
+      });
+
+      test("should preserve local favicon path when set via ogTransformer", async () => {
+        const markdown = `
+https://example.com
+`;
+        const { value } = await remark()
+          .use(remarkLinkCard, {
+            ogTransformer: (og) => ({
+              ...og,
+              faviconUrl: "/images/local-favicon.png",
+            }),
+          })
+          .process(markdown);
+
+        expect(value.toString()).toContain('src="/images/local-favicon.png"');
+      });
+
+      test("should not cache local paths set via ogTransformer", async () => {
+        const markdown = `
+https://example.com
+`;
+        const { value } = await remark()
+          .use(remarkLinkCard, {
+            cache: true,
+            ogTransformer: (og) => ({
+              ...og,
+              imageUrl: "/images/local-card.png",
+              faviconUrl: "/images/local-favicon.png",
+            }),
+          })
+          .process(markdown);
+
+        expect(value.toString()).toContain('src="/images/local-card.png"');
+        expect(value.toString()).toContain('src="/images/local-favicon.png"');
+        expect(value.toString()).not.toContain("/remark-link-card-plus/");
+      });
+
+      test("should respect noThumbnail option even when ogTransformer sets local imageUrl", async () => {
+        const markdown = `
+https://example.com
+`;
+        const { value } = await remark()
+          .use(remarkLinkCard, {
+            noThumbnail: true,
+            ogTransformer: (og) => ({
+              ...og,
+              imageUrl: "/images/local-card.png",
+            }),
+          })
+          .process(markdown);
+
+        expect(value.toString()).not.toContain('class="remark-link-card-plus__image"');
+        expect(value.toString()).not.toContain("/images/local-card.png");
+      });
+
+      test("should respect noFavicon option even when ogTransformer sets local faviconUrl", async () => {
+        const markdown = `
+https://example.com
+`;
+        const { value } = await remark()
+          .use(remarkLinkCard, {
+            noFavicon: true,
+            ogTransformer: (og) => ({
+              ...og,
+              faviconUrl: "/images/local-favicon.png",
+            }),
+          })
+          .process(markdown);
+
+        expect(value.toString()).not.toContain('class="remark-link-card-plus__favicon"');
+        expect(value.toString()).not.toContain("/images/local-favicon.png");
+      });
+
+      test("should cache remote URL when set via ogTransformer", async () => {
+        const markdown = `
+https://example.com
+`;
+        const { value } = await remark()
+          .use(remarkLinkCard, {
+            cache: true,
+            ogTransformer: (og) => ({
+              ...og,
+              imageUrl: "https://example.com/custom-image.png",
+            }),
+          })
+          .process(markdown);
+
+        expect(value.toString()).toContain("/remark-link-card-plus/");
+        expect(value.toString()).not.toContain("https://example.com/custom-image.png");
+      });
+    });
+
     describe("ignoreExtensions", () => {
       test("should skip link card transformation for URLs with ignored extensions", async () => {
         const input = `## test
