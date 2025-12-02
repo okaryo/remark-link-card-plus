@@ -190,12 +190,8 @@ const getLinkCardData = async (url: URL, options: Options) => {
     : rawOgData;
 
   // ogTransformer で明示的に設定されたかどうかを検出
-  const isTransformedFavicon =
-    options.ogTransformer !== undefined &&
-    ogData.faviconUrl !== rawOgData.faviconUrl;
-  const isTransformedImage =
-    options.ogTransformer !== undefined &&
-    ogData.imageUrl !== rawOgData.imageUrl;
+  const isTransformedFavicon = ogData.faviconUrl !== rawOgData.faviconUrl;
+  const isTransformedImage = ogData.imageUrl !== rawOgData.imageUrl;
 
   const title = ogData.title || url.hostname;
   const description = ogData.description || "";
@@ -234,13 +230,12 @@ const getFaviconUrl = async (
   url: URL,
   ogFavicon: string | undefined,
   options: Options,
-  isTransformed: boolean,
+  isTransformed = false,
 ) => {
   if (options.noFavicon) return "";
 
   let faviconUrl = ogFavicon;
 
-  // ogTransformer で明示的に設定されたローカルパスはそのまま返す（変換・キャッシュしない）
   if (isTransformed && faviconUrl?.startsWith("/")) {
     return faviconUrl;
   }
@@ -282,11 +277,10 @@ const getFaviconUrl = async (
 const getOgImageUrl = async (
   imageUrl: string | undefined,
   options: Options,
-  isTransformed: boolean,
+  isTransformed = false,
 ) => {
   if (options.noThumbnail) return "";
 
-  // ogTransformer で明示的に設定されたローカルパスはそのまま返す（キャッシュしない）
   if (isTransformed && imageUrl?.startsWith("/")) {
     return imageUrl;
   }

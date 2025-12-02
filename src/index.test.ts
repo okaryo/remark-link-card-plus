@@ -813,8 +813,10 @@ https://example.com
           `<img src="https://example.com/relative-path-favicon.ico" class="remark-link-card-plus__favicon"`,
         );
       });
+    });
 
-      test("should preserve local image path starting with /", async () => {
+    describe("Local Path Support (via ogTransformer)", () => {
+      test("should preserve local image path when set via ogTransformer", async () => {
         const markdown = `
 https://example.com
 `;
@@ -830,7 +832,7 @@ https://example.com
         expect(value.toString()).toContain('src="/images/local-card.png"');
       });
 
-      test("should preserve local favicon path starting with /", async () => {
+      test("should preserve local favicon path when set via ogTransformer", async () => {
         const markdown = `
 https://example.com
 `;
@@ -846,7 +848,7 @@ https://example.com
         expect(value.toString()).toContain('src="/images/local-favicon.png"');
       });
 
-      test("should not cache local paths", async () => {
+      test("should not cache local paths set via ogTransformer", async () => {
         const markdown = `
 https://example.com
 `;
@@ -861,13 +863,12 @@ https://example.com
           })
           .process(markdown);
 
-        // ローカルパスがそのまま使われ、キャッシュパスに変換されていないことを確認
         expect(value.toString()).toContain('src="/images/local-card.png"');
         expect(value.toString()).toContain('src="/images/local-favicon.png"');
         expect(value.toString()).not.toContain("/remark-link-card-plus/");
       });
 
-      test("should respect noThumbnail option even when ogTransformer sets imageUrl", async () => {
+      test("should respect noThumbnail option even when ogTransformer sets local imageUrl", async () => {
         const markdown = `
 https://example.com
 `;
@@ -885,7 +886,7 @@ https://example.com
         expect(value.toString()).not.toContain("/images/local-card.png");
       });
 
-      test("should respect noFavicon option even when ogTransformer sets faviconUrl", async () => {
+      test("should respect noFavicon option even when ogTransformer sets local faviconUrl", async () => {
         const markdown = `
 https://example.com
 `;
@@ -903,7 +904,7 @@ https://example.com
         expect(value.toString()).not.toContain("/images/local-favicon.png");
       });
 
-      test("should cache remote URL set by ogTransformer", async () => {
+      test("should cache remote URL when set via ogTransformer", async () => {
         const markdown = `
 https://example.com
 `;
@@ -917,7 +918,6 @@ https://example.com
           })
           .process(markdown);
 
-        // キャッシュパスに変換されていることを確認
         expect(value.toString()).toContain("/remark-link-card-plus/");
         expect(value.toString()).not.toContain("https://example.com/custom-image.png");
       });
