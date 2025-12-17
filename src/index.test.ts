@@ -979,5 +979,180 @@ https://example.com/image.png
         );
       });
     });
+
+    describe("relative and self:// URL resolution", () => {
+      test("resolves relative imageUrl against target URL", async () => {
+        const markdown = `
+https://example.com/page
+`;
+
+        const { value } = await remark()
+          .use(remarkLinkCard, {
+            ogTransformer: (og) => ({
+              ...og,
+              imageUrl: "/images/custom.png",
+            }),
+          })
+          .process(markdown);
+
+        expect(value).toContain(
+          '<img src="https://example.com/images/custom.png" class="remark-link-card-plus__image"',
+        );
+      });
+
+      test("resolves ../ imageUrl against target URL path", async () => {
+        const markdown = `
+https://example.com/dir/sub/page
+`;
+
+        const { value } = await remark()
+          .use(remarkLinkCard, {
+            ogTransformer: (og) => ({
+              ...og,
+              imageUrl: "../sample2.png",
+            }),
+          })
+          .process(markdown);
+
+        expect(value).toContain(
+          '<img src="https://example.com/dir/sample2.png" class="remark-link-card-plus__image"',
+        );
+      });
+
+      test("resolves ./ imageUrl against target URL path", async () => {
+        const markdown = `
+https://example.com/dir/sub/page
+`;
+
+        const { value } = await remark()
+          .use(remarkLinkCard, {
+            ogTransformer: (og) => ({
+              ...og,
+              imageUrl: "./images/sample.png",
+            }),
+          })
+          .process(markdown);
+
+        expect(value).toContain(
+          '<img src="https://example.com/dir/sub/images/sample.png" class="remark-link-card-plus__image"',
+        );
+      });
+
+      test("resolves relative faviconUrl against target URL", async () => {
+        const markdown = `
+https://example.com/dir/sub/page
+`;
+
+        const { value } = await remark()
+          .use(remarkLinkCard, {
+            ogTransformer: (og) => ({
+              ...og,
+              faviconUrl: "/icons/custom.ico",
+            }),
+          })
+          .process(markdown);
+
+        expect(value).toContain(
+          '<img src="https://example.com/icons/custom.ico" class="remark-link-card-plus__favicon"',
+        );
+      });
+
+      test("resolves ../ faviconUrl against target URL path", async () => {
+        const markdown = `
+https://example.com/dir/sub/page
+`;
+
+        const { value } = await remark()
+          .use(remarkLinkCard, {
+            ogTransformer: (og) => ({
+              ...og,
+              faviconUrl: "../icons/custom.ico",
+            }),
+          })
+          .process(markdown);
+
+        expect(value).toContain(
+          '<img src="https://example.com/dir/icons/custom.ico" class="remark-link-card-plus__favicon"',
+        );
+      });
+
+      test("self:// prefix strips prefix and uses path directly for imageUrl", async () => {
+        const markdown = `
+https://example.com
+`;
+
+        const { value } = await remark()
+          .use(remarkLinkCard, {
+            ogTransformer: (og) => ({
+              ...og,
+              imageUrl: "self:///images/local.png",
+            }),
+          })
+          .process(markdown);
+
+        expect(value).toContain(
+          '<img src="/images/local.png" class="remark-link-card-plus__image"',
+        );
+      });
+
+      test("self:// prefix strips prefix and uses path directly for faviconUrl", async () => {
+        const markdown = `
+https://example.com
+`;
+
+        const { value } = await remark()
+          .use(remarkLinkCard, {
+            ogTransformer: (og) => ({
+              ...og,
+              faviconUrl: "self:///icons/favicon.ico",
+            }),
+          })
+          .process(markdown);
+
+        expect(value).toContain(
+          '<img src="/icons/favicon.ico" class="remark-link-card-plus__favicon"',
+        );
+      });
+
+      test("self:// URLs are not cached even when cache option is enabled", async () => {
+        const markdown = `
+https://example.com
+`;
+
+        const { value } = await remark()
+          .use(remarkLinkCard, {
+            cache: true,
+            ogTransformer: (og) => ({
+              ...og,
+              imageUrl: "self:///images/local.png",
+              faviconUrl: "self:///icons/favicon.ico",
+            }),
+          })
+          .process(markdown);
+
+        expect(value).toContain('src="/images/local.png"');
+        expect(value).toContain('src="/icons/favicon.ico"');
+        expect(value).not.toContain("/remark-link-card-plus/");
+      });
+
+      test("absolute URLs still work as expected", async () => {
+        const markdown = `
+https://example.com
+`;
+
+        const { value } = await remark()
+          .use(remarkLinkCard, {
+            ogTransformer: (og) => ({
+              ...og,
+              imageUrl: "https://cdn.example.com/image.png",
+            }),
+          })
+          .process(markdown);
+
+        expect(value).toContain(
+          '<img src="https://cdn.example.com/image.png" class="remark-link-card-plus__image"',
+        );
+      });
+    });
   });
 });

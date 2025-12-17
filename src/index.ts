@@ -4,7 +4,7 @@ import path from "node:path";
 import { fileTypeFromBuffer } from "file-type";
 import type { Html, Link, Root, Text } from "mdast";
 import client from "open-graph-scraper";
-import type { ErrorResult, OgObject } from "open-graph-scraper/types/lib/types";
+import type { ErrorResult, OgObject } from "open-graph-scraper/types";
 import sanitizeHtml from "sanitize-html";
 import type { Plugin } from "unified";
 import { visit } from "unist-util-visit";
@@ -45,6 +45,48 @@ const defaultOptions: Options = {
   noThumbnail: false,
   noFavicon: false,
   ignoreExtensions: [],
+};
+
+const SELF_PREFIX = "self://";
+
+const isRelativePath = (urlString: string): boolean => {
+  return (
+    urlString.startsWith("/") ||
+    urlString.startsWith("./") ||
+    urlString.startsWith("../")
+  );
+};
+
+const resolveImageUrl = (
+  urlString: string | undefined,
+  baseUrl: URL,
+): string | undefined => {
+  if (!urlString || urlString.length === 0) return undefined;
+
+  if (urlString.startsWith(SELF_PREFIX)) {
+    return urlString.slice(SELF_PREFIX.length);
+  }
+
+  try {
+    const parsed = new URL(urlString);
+    if (parsed.protocol === "http:" || parsed.protocol === "https:") {
+      return urlString;
+    }
+    return undefined;
+  } catch (_) {}
+
+  if (!isRelativePath(urlString)) {
+    return undefined;
+  }
+
+  try {
+    return new URL(urlString, baseUrl).toString();
+  } catch (error) {
+    console.error(
+      `[remark-link-card-plus] Error: Failed to resolve URL ${urlString} relative to ${baseUrl}\n${error}`,
+    );
+    return undefined;
+  }
 };
 
 const remarkLinkCard: Plugin<[Options], Root> =
@@ -192,7 +234,7 @@ const getLinkCardData = async (url: URL, options: Options) => {
   const title = ogData?.title || url.hostname;
   const description = ogData?.description || "";
   const faviconUrl = await getFaviconUrl(url, ogData?.faviconUrl, options);
-  const ogImageUrl = await getOgImageUrl(ogData.imageUrl, options);
+  const ogImageUrl = await getOgImageUrl(url, ogData.imageUrl, options);
 
   let displayUrl = options.shortenUrl ? url.hostname : url.toString();
   try {
@@ -220,23 +262,14 @@ const getFaviconUrl = async (
 ) => {
   if (options.noFavicon) return "";
 
-  let faviconUrl = ogFavicon;
-  if (faviconUrl && !URL.canParse(faviconUrl)) {
-    try {
-      faviconUrl = new URL(faviconUrl, url.origin).toString();
-    } catch (error) {
-      console.error(
-        `[remark-link-card-plus] Error: Failed to resolve favicon URL ${faviconUrl} relative to ${url}\n${error}`,
-      );
-      faviconUrl = undefined;
-    }
-  }
+  const isSelfUrl = ogFavicon?.startsWith(SELF_PREFIX);
+  let faviconUrl = resolveImageUrl(ogFavicon, url);
 
   if (!faviconUrl) {
     faviconUrl = await getFaviconImageSrc(url);
   }
 
-  if (faviconUrl && options.cache) {
+  if (faviconUrl && options.cache && !isSelfUrl) {
     try {
       const faviconFilename = await getCachedImageFilename(
         new URL(faviconUrl),
@@ -256,17 +289,19 @@ const getFaviconUrl = async (
 };
 
 const getOgImageUrl = async (
+  url: URL,
   imageUrl: string | undefined,
   options: Options,
 ) => {
   if (options.noThumbnail) return "";
 
-  const isValidUrl = imageUrl && imageUrl.length > 0 && URL.canParse(imageUrl);
-  if (!isValidUrl) return "";
+  const resolvedImageUrl = resolveImageUrl(imageUrl, url);
+  if (!resolvedImageUrl) return "";
 
-  let ogImageUrl = imageUrl;
+  const isSelfUrl = imageUrl?.startsWith(SELF_PREFIX);
+  let ogImageUrl = resolvedImageUrl;
 
-  if (ogImageUrl && options.cache) {
+  if (ogImageUrl && options.cache && !isSelfUrl) {
     const imageFilename = await getCachedImageFilename(
       new URL(ogImageUrl),
       path.join(process.cwd(), defaultSaveDirectory, defaultOutputDirectory),

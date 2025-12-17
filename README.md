@@ -3,24 +3,32 @@
 [![CI](https://github.com/okaryo/remark-link-card-plus/actions/workflows/ci.yml/badge.svg)](https://github.com/okaryo/remark-link-card-plus/actions/workflows/ci.yml)
 [![npm version](https://img.shields.io/npm/v/remark-link-card-plus)](https://www.npmjs.com/package/remark-link-card-plus)
 
+English | [日本語](./README-ja.md)
+
 [remark](https://github.com/remarkjs/remark) plugin to convert text links to link cards, building upon and improving [remark-link-card](https://github.com/gladevise/remark-link-card).
 
-You can see it in action on the [demo page](https://remark-link-card-plus.pages.dev/).
+> **Note**: This repository is a fork of [okaryo/remark-link-card-plus](https://github.com/okaryo/remark-link-card-plus), enhanced with additional features for `ogTransformer` including relative path resolution and `self://` prefix support for local images.
+
+You can see it (original version) in action on the [demo page](https://remark-link-card-plus.pages.dev/).
 
 ## Features
 
 `remark-link-card-plus` is a fork of the original `remark-link-card` with the following changes:
 
-### Differences from the original:
+### Differences from the original
+
 * **TypeScript support**: Fully rewritten in TypeScript for improved type safety and developer experience.
 * **Target blank**: Links in link cards now open in a new tab using `target="_blank"`.
 * **No link cards in lists**: Links inside list items (`listItem`) are not converted into link cards.
 * **Thumbnail position customization**: Select whether the thumbnail is displayed on the left or right of the card.
 * **Optional image and favicon display**: Added `noThumbnail` and `noFavicon` options to hide thumbnails and favicons from link cards.
 * **OG data transformer**: The `ogTransformer` option allows customization of Open Graph data such as the title, description, favicon, and image before rendering the link card.
+  * **Relative path support**: `imageUrl` and `faviconUrl` can be set to relative paths (e.g., `/images/sample.png`, `../sample.png`) which are resolved against the target URL.
+  * **`self://` prefix**: Use the `self://` prefix to reference images hosted on your own site (e.g., `self:///images/local.png` becomes `/images/local.png` in the output).
 * **Ignore by extension**: The `ignoreExtensions` option allows you to skip link card conversion for URLs with specific file extensions (e.g., `.mp4`, `.pdf`).
 
-### Retained features:
+### Retained features
+
 * **Options support**:
   * `cache`: Cache images for faster loading and local storage.
   * `shortenUrl`: Display only the hostname of URLs in link cards.
@@ -58,7 +66,7 @@ Links to files like https://example.com/video.mp4 can be ignored using the `igno
 
 (async () => {
   const result = await remark()
-    .use(remarkLinkCard, { cache: true, shortenUrl: true, ignoreExtensions: ['.mp4', '.pdf'] })
+    .use(remarkLinkCard, { cache: true, shortenUrl: true, ignoreExtensions: [".mp4", ".pdf"] })
     .process(exampleMarkdown);
 
   console.log(result.value);
@@ -105,8 +113,8 @@ You can also use `remark-link-card-plus` in an [Astro](https://astro.build) proj
 
 ```javascript
 // astro.config.mjs
-import { defineConfig } from 'astro/config';
-import remarkLinkCard from 'remark-link-card-plus';
+import { defineConfig } from "astro/config";
+import remarkLinkCard from "remark-link-card-plus";
 
 export default defineConfig({
   markdown: {
@@ -118,13 +126,13 @@ export default defineConfig({
           thumbnailPosition: "right",
           noThumbnail: false,
           noFavicon: false,
-          ignoreExtensions: ['.mp4', '.pdf'],
+          ignoreExtensions: [".mp4", ".pdf"],
           ogTransformer: (og, url) => {
-            if (url.hostname === 'github.com') {
+            if (url.hostname === "github.com") {
               return { ...og, title: `GitHub: ${og.title}` };
             }
             if (og.title === og.description) {
-              return { ...og, description: 'custom description' };
+              return { ...og, description: "custom description" };
             }
             return og;
           }
@@ -142,6 +150,54 @@ export default defineConfig({
 });
 ```
 
+### Managing Overrides with JSON
+
+You can manage link card customizations in a separate JSON file for easier maintenance:
+
+```javascript
+// astro.config.mjs
+import { defineConfig } from "astro/config";
+import remarkLinkCard from "remark-link-card-plus";
+import linkcardOverrides from "./src/data/linkcard-overrides.json";
+
+export default defineConfig({
+  markdown: {
+    remarkPlugins: [
+      [
+        remarkLinkCard, {
+          ogTransformer: (og, url) => {
+            const override = linkcardOverrides[url.href];
+            if (!override) return og;
+            return { ...og, ...override };
+          },
+        },
+      ],
+    ],
+  },
+});
+```
+
+```jsonc
+// src/data/linkcard-overrides.json
+{
+  "https://pagespeed.web.dev": {
+    "description": "Make your web pages fast on all devices",
+    "imageUrl": "self:///images/web-dev/graphic-home-hero.png",
+    "faviconUrl": "self:///images/web-dev/pagespeed_64dp.png"
+  },
+  "https://abehiroshi.la.coocan.jp": {
+    "title": "Hiroshi Abe's home page",
+    "imageUrl": "/abe-top-20190328-2.jpg"
+  }
+}
+```
+
+This approach allows you to:
+
+* Override OG data for specific URLs without modifying the config file
+* Use local images with `self://` prefix for sites where OG images are unavailable or inappropriate
+* Use relative paths that resolve against the target URL's origin
+
 ## Options
 
 | Option       | Type    | Default | Description                                                                 |
@@ -151,8 +207,8 @@ export default defineConfig({
 | `thumbnailPosition` | string | `right`  | Specifies the position of the thumbnail in the card. Accepts `"left"` or `"right"`. |
 | `noThumbnail` | boolean | `false` | If `true`, does not display the Open Graph thumbnail image. The generated link card HTML will not contain an `<img>` tag for the thumbnail. |
 | `noFavicon`   | boolean | `false` | If `true`, does not display the favicon in the link card. The generated link card HTML will not contain an `<img>` tag for the favicon. |
-| `ogTransformer` | `(og: OgData, url: URL) => OgData` | `undefined` | A callback to transform the Open Graph data before rendering. The function receives the original OG data and the URL being processed. `OgData` has the structure `{ title: string; description: string; faviconUrl?: string; imageUrl?: string }`. |
-| `ignoreExtensions` | string[] | `[]` | Skips link card conversion for URLs with the specified file extensions (e.g., `['.mp4', '.pdf']`). The original Markdown is left unchanged for these links. Matching is case-insensitive and only exact extension matches are ignored. |
+| `ogTransformer` | `(og: OgData, url: URL) => OgData` | `undefined` | A callback to transform the Open Graph data before rendering. The function receives the original OG data and the URL being processed. `OgData` has the structure `{ title: string; description: string; faviconUrl?: string; imageUrl?: string }`. <br />For `imageUrl` and `faviconUrl`, you can use: relative paths (e.g., `/images/x.png`, `../x.png`) which resolve against the target URL, or `self://` prefix (e.g., `self:///images/x.png`) for local images hosted on your site. |
+| `ignoreExtensions` | string[] | `[]` | Skips link card conversion for URLs with the specified file extensions (e.g., `[".mp4", ".pdf"]`). The original Markdown is left unchanged for these links. Matching is case-insensitive and only exact extension matches are ignored. |
 
 ## Styling
 
