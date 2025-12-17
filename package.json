@@ -13,7 +13,8 @@
     "check:fix": "biome check --write --unsafe ./src",
     "check:ci": "biome ci ./src",
     "typecheck": "tsc --noEmit",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run build",
+    "prepare": "npm run build"
   },
   "repository": {
     "type": "git",
