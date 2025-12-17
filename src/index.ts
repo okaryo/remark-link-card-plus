@@ -4,7 +4,7 @@ import path from "node:path";
 import { fileTypeFromBuffer } from "file-type";
 import type { Html, Link, Root, Text } from "mdast";
 import client from "open-graph-scraper";
-import type { ErrorResult, OgObject } from "open-graph-scraper/types/lib/types";
+import type { ErrorResult, OgObject } from "open-graph-scraper/types";
 import sanitizeHtml from "sanitize-html";
 import type { Plugin } from "unified";
 import { visit } from "unist-util-visit";
@@ -67,16 +67,20 @@ const resolveImageUrl = (
     return urlString.slice(SELF_PREFIX.length);
   }
 
-  if (URL.canParse(urlString)) {
-    return urlString;
-  }
+  try {
+    const parsed = new URL(urlString);
+    if (parsed.protocol === "http:" || parsed.protocol === "https:") {
+      return urlString;
+    }
+    return undefined;
+  } catch (_) {}
 
   if (!isRelativePath(urlString)) {
     return undefined;
   }
 
   try {
-    return new URL(urlString, baseUrl.origin).toString();
+    return new URL(urlString, baseUrl).toString();
   } catch (error) {
     console.error(
       `[remark-link-card-plus] Error: Failed to resolve URL ${urlString} relative to ${baseUrl}\n${error}`,

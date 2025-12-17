@@ -5,13 +5,13 @@
     "esModuleInterop": true,
     "experimentalDecorators": true,
     "jsx": "react-jsx",
-    "lib": ["es2015", "dom"],
-    "module": "es2020",
-    "moduleResolution": "node",
+    "lib": ["ES2020", "dom"],
+    "module": "ES2020",
+    "moduleResolution": "bundler",
     "outDir": "./build",
     "sourceMap": true,
     "strict": true,
-    "target": "es5",
+    "target": "ES2020"
   },
   "include": ["src/**/*.ts"],
   "exclude": ["node_modules"]
