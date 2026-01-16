@@ -47,7 +47,7 @@
     "vitest": "^4.0.14"
   },
   "dependencies": {
-    "file-type": "^21.1.1",
+    "file-type": "^21.3.0",
     "open-graph-scraper": "^6.11.0",
     "sanitize-html": "^2.17.0",
     "unified": "^11.0.5",
