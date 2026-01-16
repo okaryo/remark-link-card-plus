@@ -3,28 +3,34 @@ name: Release
 on:
   push:
     tags:
-      - '*'
+      - "*"
 
 jobs:
-  release:
+  publish:
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write # for npm trusted publishing
+      contents: read
     steps:
       - name: checkout
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
       - name: Setup node
         uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
         with:
-          node-version: '24.13.0'
+          node-version: "24.13.0"
           cache: npm
-          registry-url: 'https://registry.npmjs.org'
+          registry-url: "https://registry.npmjs.org"
       - name: Install npm packages
         run: npm ci
       - name: build
         run: npm run build
-      - name: Publish to npm 
-        run: npm publish --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_ACCESS_TOKEN }}
+      - name: Publish to npm
+        run: npm publish --provenance --access public
+
+  release-note:
+    runs-on: ubuntu-latest
+    needs: publish
+    steps:
       - name: Generate release note
         uses: softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b # v2.5.0
         with:
