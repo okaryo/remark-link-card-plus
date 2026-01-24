@@ -1,0 +1,40 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls:*)",
+      "Bash(npm test:*)",
+      "Bash(npm run typecheck:*)",
+      "Bash(npm run check:*)",
+      "Bash(cat:*)",
+      "Bash(npx vitest:*)",
+      "Bash(jj status:*)",
+      "Bash(jj log:*)",
+      "Bash(jj diff:*)",
+      "Bash(jj show:*)",
+      "Bash(jj describe:*)",
+      "Bash(jj new:*)",
+      "Bash(jj commit:*)",
+      "Bash(jj edit:*)",
+      "Bash(jj restore:*)",
+      "Bash(jj squash:*)",
+      "Bash(jj rebase:*)",
+      "Bash(jj abandon:*)",
+      "Bash(jj undo:*)",
+      "Bash(jj bookmark create:*)",
+      "Bash(jj bookmark list:*)",
+      "Bash(jj bookmark move:*)",
+      "Bash(jj bookmark rename:*)",
+      "Bash(jj bookmark set:*)",
+      "Bash(jj git fetch:*)",
+      "Bash(jj file list:*)"
+    ],
+    "deny": ["Bash(git:*)", "Bash(jj git push:*)"],
+    "ask": [
+      "Bash(jj bookmark delete:*)",
+      "Bash(jj bookmark forget:*)",
+      "Bash(jj bookmark track:*)",
+      "Bash(jj bookmark untrack:*)",
+      "Bash(jj push:*)"
+    ]
+  }
+}
