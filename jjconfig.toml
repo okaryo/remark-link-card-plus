@@ -1,0 +1,14 @@
+#:schema https://docs.jj-vcs.dev/latest/config-schema.json
+
+[revset-aliases]
+"trunk()" = "main@upstream"
+
+[git]
+fetch = ["origin", "upstream"]
+
+[fix.tools.biome]
+command = ["npx", "biome", "check", "--write", "--unsafe", "--stdin-file-path=$path"]
+patterns = ["glob:'src/**/*.ts'"]
+
+[aliases]
+push = ["util", "exec", "--", "sh", "-c", "jj fix && jj git push \"$@\"", "--"]
