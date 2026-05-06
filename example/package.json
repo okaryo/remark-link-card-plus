@@ -10,9 +10,9 @@
   },
   "dependencies": {
     "@tailwindcss/typography": "^0.5.19",
-    "@tailwindcss/vite": "^4.2.1",
+    "@tailwindcss/vite": "^4.2.4",
     "astro": "^5.18.0",
     "remark-link-card-plus": "file:../",
-    "tailwindcss": "^4.2.1"
+    "tailwindcss": "^4.2.4"
   }
 }
