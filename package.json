@@ -37,14 +37,14 @@
   },
   "homepage": "https://github.com/okaryo/remark-link-card-plus#readme",
   "devDependencies": {
-    "@biomejs/biome": "2.4.6",
+    "@biomejs/biome": "2.4.12",
     "@remark-embedder/core": "^3.0.3",
-    "@types/node": "^24.12.0",
+    "@types/node": "^24.12.2",
     "@types/sanitize-html": "^2.16.1",
-    "msw": "^2.12.10",
+    "msw": "^2.13.5",
     "remark": "^15.0.1",
     "typescript": "^5.9.3",
-    "vitest": "^4.0.18"
+    "vitest": "^4.1.5"
   },
   "dependencies": {
     "file-type": "^21.3.0",
