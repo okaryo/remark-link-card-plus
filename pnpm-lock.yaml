@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@types/mdast':
+        specifier: ^4.0.4
+        version: 4.0.4
       file-type:
         specifier: ^22.0.1
         version: 22.0.1

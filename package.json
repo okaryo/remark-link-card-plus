@@ -48,6 +48,7 @@
     "vitest": "^4.1.10"
   },
   "dependencies": {
+    "@types/mdast": "^4.0.4",
     "file-type": "^22.0.1",
     "open-graph-scraper": "^6.12.0",
     "sanitize-html": "^2.17.6",
