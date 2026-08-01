@@ -4,7 +4,7 @@ import path from "node:path";
 import { fileTypeFromBuffer } from "file-type";
 import type { Html, Link, Root, Text } from "mdast";
 import client from "open-graph-scraper";
-import type { ErrorResult, OgObject } from "open-graph-scraper/types/lib/types";
+import type { ErrorResult, OgObject } from "open-graph-scraper/types";
 import sanitizeHtml from "sanitize-html";
 import type { Plugin } from "unified";
 import { visit } from "unist-util-visit";
