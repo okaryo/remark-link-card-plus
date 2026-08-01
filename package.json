@@ -48,8 +48,8 @@
   },
   "dependencies": {
     "file-type": "^22.0.1",
-    "open-graph-scraper": "^6.11.0",
-    "sanitize-html": "^2.17.1",
+    "open-graph-scraper": "^6.12.0",
+    "sanitize-html": "^2.17.6",
     "unified": "^11.0.5",
     "unist-util-visit": "^5.1.0"
   }
