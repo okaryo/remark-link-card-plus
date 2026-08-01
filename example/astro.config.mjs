@@ -1,5 +1,6 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
+import { unified } from "@astrojs/markdown-remark";
 import tailwindcss from "@tailwindcss/vite";
 import remarkLinkCard from 'remark-link-card-plus';
 
@@ -11,14 +12,16 @@ export default defineConfig({
     ],
   },
   markdown: {
-    remarkPlugins: [
-      [
-        remarkLinkCard, {
-          cache: true,
-          shortenUrl: true,
-          ignoreExtensions: [".mp4"],
-        },
+    processor: unified({
+      remarkPlugins: [
+        [
+          remarkLinkCard, {
+            cache: true,
+            shortenUrl: true,
+            ignoreExtensions: [".mp4"],
+          },
+        ],
       ],
-    ],
+    })
   },
 });
