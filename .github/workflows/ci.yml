@@ -21,9 +21,10 @@ jobs:
           cache: npm
       - name: Install npm packages
         run: npm ci
-      - name: Build
-        run: npm run build
-      - name: Run Test
-        run: npm run test
-      - name: Run Lint and Formatter
-        run: npm run check:ci
+      - parallel:
+          - name: Build
+            run: npm run build
+          - name: Run Test
+            run: npm run test
+          - name: Run Lint and Formatter
+            run: npm run check:ci
