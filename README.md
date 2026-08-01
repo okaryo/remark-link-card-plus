@@ -28,6 +28,8 @@ You can see it in action on the [demo page](https://remark-link-card-plus.pages.
 
 ## Install
 
+Node.js 22.13.0 or later is required.
+
 ```sh
 npm i remark-link-card-plus
 ```
