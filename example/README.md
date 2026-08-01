@@ -13,13 +13,13 @@ The example page is built using [Astro](https://astro.build/). To run it locally
 1. Install dependencies:
 
 ```bash
-npm install
+pnpm install
 ```
 
 2. Start the development server:
 
 ```bash
-npm run dev
+pnpm run dev
 ```
 
 3. Open your browser and navigate to the URL provided in the terminal.

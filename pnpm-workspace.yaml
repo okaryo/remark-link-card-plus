@@ -1,0 +1,5 @@
+packages:
+  - example
+allowBuilds:
+  esbuild: true
+  msw: true
