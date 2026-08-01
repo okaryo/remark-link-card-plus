@@ -20,13 +20,12 @@
       "minimumReleaseAge": "14 days"
     },
     {
-      "matchFileNames": ["example/**"],
-      "groupName": "example",
-      "minimumReleaseAge": "14 days"
-    },
-    {
       "matchManagers": ["github-actions"],
       "groupName": "GitHub Actions"
+    },
+    {
+      "matchFileNames": ["example/**"],
+      "enabled": false
     }
   ]
 }
