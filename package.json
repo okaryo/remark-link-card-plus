@@ -21,7 +21,7 @@
     "url": "git+https://github.com/okaryo/remark-link-card-plus.git"
   },
   "engines": {
-    "node": ">=22.13.0"
+    "node": ">=24.20.0"
   },
   "keywords": [
     "unified",
