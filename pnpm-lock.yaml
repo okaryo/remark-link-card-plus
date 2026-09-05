@@ -18,7 +18,7 @@ importers:
         specifier: ^6.12.0
         version: 6.12.0
       sanitize-html:
-        specifier: ^2.17.6
+        specifier: ^2.17.7
         version: 2.17.7
       unified:
         specifier: ^11.0.5
