@@ -14,16 +14,12 @@ jobs:
     steps:
       - name: checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - name: Setup pnpm
-        uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
-      - name: Setup node
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      - name: Set up pnpm and Node.js
+        uses: pnpm/setup@703c52620218391530e48b9e8870d5c0082e1b9b # v2.1.0
         with:
-          node-version: "24.18.1"
-          cache: pnpm
-          registry-url: "https://registry.npmjs.org"
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+          runtime: node@24.20.0
+          cache: true
+          require-lockfile: true
       - name: build
         run: pnpm run build
       - name: Publish to npm
@@ -34,6 +30,6 @@ jobs:
     needs: publish
     steps:
       - name: Generate release note
-        uses: softprops/action-gh-release@3d0d9888cb7fd7b750713d6e236d1fcb99157228 # v3.0.2
+        uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
         with:
           generate_release_notes: true
