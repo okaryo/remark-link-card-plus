@@ -45,7 +45,7 @@
     "msw": "^2.15.0",
     "remark": "^15.0.1",
     "typescript": "^7.0.2",
-    "vitest": "^4.1.11"
+    "vitest": "^5.0.0"
   },
   "dependencies": {
     "@types/mdast": "^4.0.4",
