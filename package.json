@@ -42,10 +42,10 @@
     "@remark-embedder/core": "^3.0.3",
     "@types/node": "^24.13.3",
     "@types/sanitize-html": "^2.16.1",
-    "msw": "^2.15.0",
+    "msw": "^3.0.2",
     "remark": "^15.0.1",
     "typescript": "^7.0.2",
-    "vitest": "^4.1.11"
+    "vitest": "^5.0.3"
   },
   "dependencies": {
     "@types/mdast": "^4.0.4",
