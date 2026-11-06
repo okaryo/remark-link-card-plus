@@ -152,7 +152,7 @@ const getOpenGraph = async (targetUrl: URL) => {
   try {
     const { result } = await client({
       url: targetUrl.toString(),
-      timeout: 10000,
+      timeout: 10,
     });
     return result;
   } catch (error) {
