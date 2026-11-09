@@ -813,6 +813,81 @@ https://example.com
           `<img src="https://example.com/relative-path-favicon.ico" class="remark-link-card-plus__favicon"`,
         );
       });
+
+      test("resolves page-relative favicon URLs against the page URL", async () => {
+        // biome-ignore lint/suspicious/noExplicitAny: for open-graph-scraper mock
+        const mockedClient = vi.mocked(client as any);
+        mockedClient.mockResolvedValueOnce({
+          error: false,
+          result: {
+            ogTitle: "Page-relative Favicon",
+            ogDescription: "Favicon should be resolved against the page URL",
+            favicon: "img/favicon.ico",
+          },
+        });
+
+        const markdown = `
+https://example.com/2019/
+`;
+
+        const { value } = await remark()
+          .use(remarkLinkCard, {})
+          .process(markdown);
+
+        expect(value.toString()).toContain(
+          `<img src="https://example.com/2019/img/favicon.ico" class="remark-link-card-plus__favicon"`,
+        );
+      });
+
+      test("resolves root-relative favicon URLs against the origin even on a nested page", async () => {
+        // biome-ignore lint/suspicious/noExplicitAny: for open-graph-scraper mock
+        const mockedClient = vi.mocked(client as any);
+        mockedClient.mockResolvedValueOnce({
+          error: false,
+          result: {
+            ogTitle: "Root-relative Favicon",
+            ogDescription: "Favicon should be resolved against the origin",
+            favicon: "/favicon.ico",
+          },
+        });
+
+        const markdown = `
+https://example.com/2019/
+`;
+
+        const { value } = await remark()
+          .use(remarkLinkCard, {})
+          .process(markdown);
+
+        expect(value.toString()).toContain(
+          `<img src="https://example.com/favicon.ico" class="remark-link-card-plus__favicon"`,
+        );
+      });
+
+      test("keeps absolute favicon URLs as they are", async () => {
+        // biome-ignore lint/suspicious/noExplicitAny: for open-graph-scraper mock
+        const mockedClient = vi.mocked(client as any);
+        mockedClient.mockResolvedValueOnce({
+          error: false,
+          result: {
+            ogTitle: "Absolute Favicon",
+            ogDescription: "Favicon should not be changed",
+            favicon: "https://cdn.example.net/favicon.ico",
+          },
+        });
+
+        const markdown = `
+https://example.com/2019/
+`;
+
+        const { value } = await remark()
+          .use(remarkLinkCard, {})
+          .process(markdown);
+
+        expect(value.toString()).toContain(
+          `<img src="https://cdn.example.net/favicon.ico" class="remark-link-card-plus__favicon"`,
+        );
+      });
     });
 
     describe("ignoreExtensions", () => {
