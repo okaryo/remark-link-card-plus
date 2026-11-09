@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { http } from "msw";
@@ -41,6 +42,12 @@ const server = setupServer(
   http.head("https://www.google.com/s2/favicons", () => {
     return new Response(null, { status: 200 });
   }),
+  http.get("https://www.google.com/s2/favicons", () => {
+    return new Response(new Uint8Array([0x89, 0x50, 0x4e, 0x47]), {
+      status: 200,
+      headers: { "Content-Type": "image/png" },
+    });
+  }),
 );
 
 beforeAll(() => server.listen());
@@ -54,6 +61,16 @@ const removeLineLeadingSpaces = (input: string) => {
     .split("\n")
     .map((line) => line.trimStart())
     .join("\n");
+};
+
+const findCachedFiles = async (url: string) => {
+  const hash = createHash("sha256").update(decodeURI(url)).digest("hex");
+  const cacheDirectory = path.join(
+    process.cwd(),
+    "public/remark-link-card-plus",
+  );
+  const files = await fs.readdir(cacheDirectory).catch(() => []);
+  return files.filter((file) => file.startsWith(hash));
 };
 
 describe("remark-link-card-plus", () => {
@@ -528,6 +545,127 @@ https://example.com
         expect(value.toString()).toMatch(
           /src="\/remark-link-card-plus\/.*\.svg"/,
         );
+      });
+
+      describe("invalid image responses", () => {
+        beforeEach(() => {
+          // NOTE: Earlier tests can leave an unconsumed `fetch` mock behind when their image is already cached
+          vi.restoreAllMocks();
+        });
+
+        test("Does not cache an image when the response is an error page", async () => {
+          const imageUrl = "https://example.com/not-found-image.png";
+          // biome-ignore lint/suspicious/noExplicitAny: for open-graph-scraper mock
+          const mockedClient = vi.mocked(client as any);
+          mockedClient.mockResolvedValueOnce({
+            error: false,
+            result: {
+              ogTitle: "Not Found Image",
+              ogDescription: "Should not be cached",
+              ogImage: [{ url: imageUrl }],
+            },
+          });
+          server.use(
+            http.get(imageUrl, () => {
+              return new Response("<html>Not Found</html>", {
+                status: 404,
+                headers: { "Content-Type": "text/html" },
+              });
+            }),
+          );
+
+          const input = `## test
+
+https://example.com
+`;
+
+          const processorWithCache = remark().use(remarkLinkCard, {
+            cache: true,
+            noFavicon: true,
+          });
+          const { value } = await processorWithCache.process(input);
+
+          expect(value.toString()).toContain(
+            `<img src="${imageUrl}" class="remark-link-card-plus__image"`,
+          );
+          expect(await findCachedFiles(imageUrl)).toEqual([]);
+        });
+
+        test("Does not cache an image when the response body is empty", async () => {
+          const imageUrl = "https://example.com/empty-image.png";
+          // biome-ignore lint/suspicious/noExplicitAny: for open-graph-scraper mock
+          const mockedClient = vi.mocked(client as any);
+          mockedClient.mockResolvedValueOnce({
+            error: false,
+            result: {
+              ogTitle: "Empty Image",
+              ogDescription: "Should not be cached",
+              ogImage: [{ url: imageUrl }],
+            },
+          });
+          server.use(
+            http.get(imageUrl, () => {
+              return new Response(null, {
+                status: 200,
+                headers: { "Content-Type": "image/png" },
+              });
+            }),
+          );
+
+          const input = `## test
+
+https://example.com
+`;
+
+          const processorWithCache = remark().use(remarkLinkCard, {
+            cache: true,
+            noFavicon: true,
+          });
+          const { value } = await processorWithCache.process(input);
+
+          expect(value.toString()).toContain(
+            `<img src="${imageUrl}" class="remark-link-card-plus__image"`,
+          );
+          expect(await findCachedFiles(imageUrl)).toEqual([]);
+        });
+
+        test("Does not cache an image when the Content-Type is not an image", async () => {
+          const imageUrl = "https://example.com/not-an-image";
+          // biome-ignore lint/suspicious/noExplicitAny: for open-graph-scraper mock
+          const mockedClient = vi.mocked(client as any);
+          mockedClient.mockResolvedValueOnce({
+            error: false,
+            result: {
+              ogTitle: "Not An Image",
+              ogDescription: "Should not be cached",
+              ogImage: [{ url: imageUrl }],
+            },
+          });
+          server.use(
+            http.get(imageUrl, () => {
+              return new Response("<html>Hello</html>", {
+                status: 200,
+                headers: { "Content-Type": "text/html" },
+              });
+            }),
+          );
+
+          const input = `## test
+
+https://example.com
+`;
+
+          const processorWithCache = remark().use(remarkLinkCard, {
+            cache: true,
+            noFavicon: true,
+          });
+          const { value } = await processorWithCache.process(input);
+
+          expect(value.toString()).toContain(
+            `<img src="${imageUrl}" class="remark-link-card-plus__image"`,
+          );
+          expect(await findCachedFiles(imageUrl)).toEqual([]);
+        });
       });
     });
 

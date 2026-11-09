@@ -306,12 +306,24 @@ const getCachedImageFilename = async (
     const arrayBuffer = await response.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
     const contentType = response.headers.get("Content-Type");
-    let extension = "";
 
+    // NOTE: Do not cache error pages, non-image responses, or empty bodies.
+    // Saving them would replace the link card image with a broken file.
+    if (!response.ok) {
+      throw new Error(`Unexpected response status: ${response.status}`);
+    }
+    if (!contentType?.startsWith("image/")) {
+      throw new Error(`Unexpected Content-Type: ${contentType}`);
+    }
+    if (buffer.length === 0) {
+      throw new Error("Empty response body");
+    }
+
+    let extension: string;
     // NOTE: file-type cannot detect text-based formats like SVG, so we handle image/svg+xml manually
-    if (contentType?.startsWith("image/svg+xml")) {
+    if (contentType.startsWith("image/svg+xml")) {
       extension = ".svg";
-    } else if (contentType?.startsWith("image/")) {
+    } else {
       const fileType = await fileTypeFromBuffer(buffer);
       extension = fileType ? `.${fileType.ext}` : ".png";
     }
