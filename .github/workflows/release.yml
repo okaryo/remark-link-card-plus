@@ -15,9 +15,9 @@ jobs:
       - name: checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Set up pnpm and Node.js
-        uses: pnpm/setup@fa36a5ef7dcdefc3a7cb25655c122e00cf6e636e # v3.1.2
+        uses: pnpm/setup@731dfb6463bbd11c11fd0ee11fe00ed0e36d48a1 # v3.2.0
         with:
-          runtime: node@26.13.0
+          runtime: node@26.13.1
           cache: true
           require-lockfile: true
       - name: build
@@ -30,6 +30,6 @@ jobs:
     needs: publish
     steps:
       - name: Generate release note
-        uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
+        uses: softprops/action-gh-release@8a0cd651e5b2365bd640854a3fa5dfc70e4875f3 # v3.0.4
         with:
           generate_release_notes: true
