@@ -303,18 +303,22 @@ const getCachedImageFilename = async (
     const response = await fetch(url.href, {
       signal: AbortSignal.timeout(10000),
     });
-    const arrayBuffer = await response.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
     const contentType = response.headers.get("Content-Type");
 
     // NOTE: Do not cache error pages, non-image responses, or empty bodies.
     // Saving them would replace the link card image with a broken file.
     if (!response.ok) {
+      await response.body?.cancel();
       throw new Error(`Unexpected response status: ${response.status}`);
     }
     if (!contentType?.startsWith("image/")) {
+      await response.body?.cancel();
       throw new Error(`Unexpected Content-Type: ${contentType}`);
     }
+
+    const arrayBuffer = await response.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
     if (buffer.length === 0) {
       throw new Error("Empty response body");
     }
