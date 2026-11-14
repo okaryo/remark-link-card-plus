@@ -223,7 +223,7 @@ const getFaviconUrl = async (
   let faviconUrl = ogFavicon;
   if (faviconUrl && !URL.canParse(faviconUrl)) {
     try {
-      faviconUrl = new URL(faviconUrl, url.origin).toString();
+      faviconUrl = new URL(faviconUrl, url).toString();
     } catch (error) {
       console.error(
         `[remark-link-card-plus] Error: Failed to resolve favicon URL ${faviconUrl} relative to ${url}\n${error}`,
