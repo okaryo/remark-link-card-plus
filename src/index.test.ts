@@ -706,6 +706,21 @@ https://example.com
         expect(value).toContain("https://custom.com/image.png");
       });
 
+      test("resolves a page-relative favicon URL returned by ogTransformer", async () => {
+        const { value } = await remark()
+          .use(remarkLinkCard, {
+            ogTransformer: (og) => ({
+              ...og,
+              faviconUrl: "./favicon.ico",
+            }),
+          })
+          .process("https://example.com/articles/2026/");
+
+        expect(value.toString()).toContain(
+          '<img src="https://example.com/articles/2026/favicon.ico" class="remark-link-card-plus__favicon"',
+        );
+      });
+
       test("should pass URL parameter to ogTransformer", async () => {
         const markdown = `
 https://example.com/path?param=value
