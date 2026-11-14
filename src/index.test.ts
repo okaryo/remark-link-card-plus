@@ -629,6 +629,95 @@ https://example.com
           expect(await findCachedFiles(imageUrl)).toEqual([]);
         });
 
+        test("Does not read response body for an unsuccessful image response", async () => {
+          const imageUrl =
+            "https://example.com/not-found-image-body-not-read.png";
+          const responseArrayBuffer = vi.fn();
+          const responseBodyCancel = vi.fn().mockResolvedValue(undefined);
+          // biome-ignore lint/suspicious/noExplicitAny: for open-graph-scraper mock
+          const mockedClient = vi.mocked(client as any);
+          mockedClient.mockResolvedValueOnce({
+            error: false,
+            result: {
+              ogTitle: "Not Found Image",
+              ogDescription: "Should not read body",
+              ogImage: [{ url: imageUrl }],
+            },
+          });
+          vi.spyOn(global, "fetch").mockResolvedValueOnce({
+            ok: false,
+            status: 404,
+            headers: new Headers({
+              "Content-Type": "image/png",
+            }),
+            body: {
+              cancel: responseBodyCancel,
+            },
+            arrayBuffer: responseArrayBuffer,
+          } as Response);
+
+          const input = `## test
+
+https://example.com
+`;
+
+          const processorWithCache = remark().use(remarkLinkCard, {
+            cache: true,
+            noFavicon: true,
+          });
+          const { value } = await processorWithCache.process(input);
+
+          expect(value.toString()).toContain(
+            `<img src="${imageUrl}" class="remark-link-card-plus__image"`,
+          );
+          expect(responseArrayBuffer).not.toHaveBeenCalled();
+          expect(responseBodyCancel).toHaveBeenCalledTimes(1);
+        });
+
+        test("Does not read response body when Content-Type is not an image", async () => {
+          const imageUrl = "https://example.com/non-image-body-not-read";
+          const responseArrayBuffer = vi.fn();
+          const responseBodyCancel = vi.fn().mockResolvedValue(undefined);
+          // biome-ignore lint/suspicious/noExplicitAny: for open-graph-scraper mock
+          const mockedClient = vi.mocked(client as any);
+          mockedClient.mockResolvedValueOnce({
+            error: false,
+            result: {
+              ogTitle: "Not An Image",
+              ogDescription: "Should not read body",
+              ogImage: [{ url: imageUrl }],
+            },
+          });
+          vi.spyOn(global, "fetch").mockResolvedValueOnce({
+            ok: true,
+            status: 200,
+            headers: new Headers({
+              "Content-Type": "text/html",
+            }),
+            body: {
+              cancel: responseBodyCancel,
+            },
+            arrayBuffer: responseArrayBuffer,
+          } as Response);
+
+          const input = `## test
+
+https://example.com
+`;
+
+          const processorWithCache = remark().use(remarkLinkCard, {
+            cache: true,
+            noFavicon: true,
+          });
+          const { value } = await processorWithCache.process(input);
+
+          expect(value.toString()).toContain(
+            `<img src="${imageUrl}" class="remark-link-card-plus__image"`,
+          );
+          expect(responseArrayBuffer).not.toHaveBeenCalled();
+          expect(responseBodyCancel).toHaveBeenCalledTimes(1);
+        });
+
         test("Does not cache an image when the Content-Type is not an image", async () => {
           const imageUrl = "https://example.com/not-an-image";
           // biome-ignore lint/suspicious/noExplicitAny: for open-graph-scraper mock
