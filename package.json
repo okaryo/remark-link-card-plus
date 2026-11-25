@@ -51,7 +51,7 @@
     "@types/mdast": "^4.0.4",
     "file-type": "^22.3.0",
     "open-graph-scraper": "^6.13.0",
-    "sanitize-html": "^2.18.1",
+    "sanitize-html": "^2.18.2",
     "unified": "^11.0.5",
     "unist-util-visit": "^5.2.0"
   }
